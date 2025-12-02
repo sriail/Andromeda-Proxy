@@ -1,6 +1,11 @@
 ---
 import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
 import UpperSearchBar from "./UpperSearchBar.astro";
+
+import andromedaLogoDark from "@assets/images/icons/andromedaLogoDark.png";
+import andromedaLogoLight from "@assets/images/icons/andromedaLogoLight.png";
+
 const path = Astro.url.pathname;
 ---
 <div class="h-14 fixed bg-(--background) border-b border-b-(--border) px-4 w-full z-10 flex items-center font-inter">
@@ -9,12 +14,13 @@ const path = Astro.url.pathname;
             <Icon name="lucide:menu" class="text-(--foreground) h-7 w-7" />
         </button>
         <a id="bhl" class="flex items-center gap-2" href="/">
-            <Icon name="lucide:radius" class="w-8 h-8 rotate-180 text-(--foreground)" />
-            <h1 class="text-xl font-bold text-(--foreground)"> Radius </h1>
+            <Image src={andromedaLogoDark} alt="Andromeda" class="w-8 h-8 block dark:hidden" />
+            <Image src={andromedaLogoLight} alt="Andromeda" class="w-8 h-8 hidden dark:block" />
+            <h1 class="text-xl font-bold text-(--foreground)"> Andromeda </h1>
         </a>
         <div id="phl" class="flex items-center gap-2 hidden">
             <img id="phlImage" src="" class="w-8 h-8 text-(--foreground) rounded-2xl" />
-            <h1 id="phlTitle" class="hidden md:block text-sm font-bold text-(--foreground) whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"> Radius </h1>
+            <h1 id="phlTitle" class="hidden md:block text-sm font-bold text-(--foreground) whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"> Andromeda </h1>
         </div>
     </div>
     <div class="flex-1 flex items-center justify-center px-4">
@@ -37,7 +43,8 @@ const path = Astro.url.pathname;
 <div class="fixed w-full h-full z-10 flex flex-row pointer-events-auto invisible transition duration-500 font-inter" id="navigation">
     <div id="innerNav" class="flex flex-col gap-6 w-72 h-full bg-(--background) border-r border-r-(--border) p-6 transition duration-250 shadow-lg">
         <div class="w-full flex flex-row justify-between transition duration-250">
-            <Icon name="lucide:radius" class="w-10 h-10 rotate-180 text-(--foreground)" />
+            <Image src={andromedaLogoDark} alt="Andromeda" class="w-10 h-10 block dark:hidden" />
+            <Image src={andromedaLogoLight} alt="Andromeda" class="w-10 h-10 hidden dark:block" />
             <button id="exitNav">
                 <Icon name="lucide:x" class="text-(--muted-foreground)" />
             </button>

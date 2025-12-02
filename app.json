@@ -1,8 +1,8 @@
 {
-    "name": "Radius",
+    "name": "Andromeda",
     "description": "A simple and clean web proxy designed for speed and ease-of-use",
-    "repository": "https://github.com/RadiusProxy/Radius",
-    "logo": "https://radiusproxy.app/favicon.png",
+    "repository": "https://github.com/sriail/Andromeda-Proxy",
+    "logo": "https://github.com/sriail/Andromeda-Proxy/raw/main/src/assets/images/icons/andromedaLogoDark.png",
     "keywords": ["proxy", "web-proxy", "astro", "fastify", "ultraviolet", "scramjet"],
     "buildpacks": [
         {
