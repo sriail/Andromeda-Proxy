@@ -1,0 +1,58 @@
+---
+interface Props {
+    id: string;
+    label: string;
+    description?: string;
+    defaultChecked?: boolean;
+}
+
+const { id, label, description, defaultChecked } = Astro.props;
+---
+<div class="flex items-start justify-between gap-4 py-4">
+    <div class="flex flex-col gap-1">
+        <label for={`switch-${id}`} class="text-sm font-medium text-(--foreground) cursor-pointer">
+            {label}
+        </label>
+        {description && (
+            <p class="text-xs text-(--muted-foreground) max-w-md">
+                {description}
+            </p>
+        )}
+    </div>
+    <button
+        type="button"
+        role="switch"
+        id={`switch-${id}`}
+        aria-checked={defaultChecked ? "true" : "false"}
+        data-state={defaultChecked ? "checked" : "unchecked"}
+        class="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ring) focus-visible:ring-offset-2 focus-visible:ring-offset-(--background) disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-(--primary) data-[state=unchecked]:bg-(--input)"
+    >
+        <span
+            class="pointer-events-none block h-5 w-5 rounded-full bg-(--background) shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
+            data-state={defaultChecked ? "checked" : "unchecked"}
+        ></span>
+    </button>
+</div>
+<script>
+    document.addEventListener('astro:page-load', () => {
+        const switches = document.querySelectorAll('[role="switch"]:not([data-switch-initialized])');
+        switches.forEach((switchEl) => {
+            switchEl.setAttribute('data-switch-initialized', 'true');
+            switchEl.addEventListener('click', () => {
+                const isChecked = switchEl.getAttribute('aria-checked') === 'true';
+                const newState = !isChecked;
+                switchEl.setAttribute('aria-checked', String(newState));
+                switchEl.setAttribute('data-state', newState ? 'checked' : 'unchecked');
+                const thumb = switchEl.querySelector('span');
+                if (thumb) {
+                    thumb.setAttribute('data-state', newState ? 'checked' : 'unchecked');
+                }
+                // Dispatch a custom change event
+                switchEl.dispatchEvent(new CustomEvent('switch-change', { 
+                    detail: { checked: newState },
+                    bubbles: true 
+                }));
+            });
+        });
+    });
+</script>

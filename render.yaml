@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: radius
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /

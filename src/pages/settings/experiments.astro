@@ -1,0 +1,79 @@
+---
+import SettingsLayout from "@layouts/SettingsLayout.astro";
+import Switch from "@components/ui/Switch.astro";
+import { Icon } from "astro-icon/components";
+---
+<SettingsLayout active="experiments" title="Experiments">
+    <div class="w-full flex-grow">
+        <div class="flex items-center gap-2 mb-4 p-3 bg-(--accent) rounded-lg">
+            <Icon name="lucide:triangle-alert" class="h-5 w-5 text-yellow-500" />
+            <p class="text-sm text-(--muted-foreground)">
+                These features are experimental and may not work as expected. Use at your own risk.
+            </p>
+        </div>
+        
+        <div class="divide-y divide-(--border)">
+            <Switch 
+                id="preconfiguredSites" 
+                label="Preconfigured Sites"
+                description="Automatically use optimal proxy configurations for sites that struggle to load. The system will detect known problematic sites and switch to a working configuration (e.g., Scramjet with Bare server for Amazon)."
+            />
+            
+            <Switch 
+                id="dynamicLoading" 
+                label="Dynamic Loading"
+                description="Monitor console for errors from Bare/Wisp servers and web proxies. When a site fails to load, automatically try different configurations. If all configurations fail, show the 404 page."
+            />
+        </div>
+    </div>
+</SettingsLayout>
+
+<script>
+    import { StoreManager } from "@utils/storage";
+
+    const initExperiments = (storage: StoreManager<"radius||settings">) => {
+        const preconfiguredSitesSwitch = document.getElementById("switch-preconfiguredSites");
+        const dynamicLoadingSwitch = document.getElementById("switch-dynamicLoading");
+
+        if (!preconfiguredSitesSwitch || !dynamicLoadingSwitch) return;
+
+        // Load saved states
+        const preconfiguredSitesEnabled = storage.getVal("experimentPreconfiguredSites") === "true";
+        const dynamicLoadingEnabled = storage.getVal("experimentDynamicLoading") === "true";
+
+        // Set initial states
+        if (preconfiguredSitesEnabled) {
+            preconfiguredSitesSwitch.setAttribute("aria-checked", "true");
+            preconfiguredSitesSwitch.setAttribute("data-state", "checked");
+            const thumb = preconfiguredSitesSwitch.querySelector("span");
+            if (thumb) thumb.setAttribute("data-state", "checked");
+        }
+
+        if (dynamicLoadingEnabled) {
+            dynamicLoadingSwitch.setAttribute("aria-checked", "true");
+            dynamicLoadingSwitch.setAttribute("data-state", "checked");
+            const thumb = dynamicLoadingSwitch.querySelector("span");
+            if (thumb) thumb.setAttribute("data-state", "checked");
+        }
+
+        // Listen for changes
+        preconfiguredSitesSwitch.addEventListener("switch-change", (e: Event) => {
+            const customEvent = e as CustomEvent<{ checked: boolean }>;
+            storage.setVal("experimentPreconfiguredSites", customEvent.detail.checked.toString());
+        });
+
+        dynamicLoadingSwitch.addEventListener("switch-change", (e: Event) => {
+            const customEvent = e as CustomEvent<{ checked: boolean }>;
+            storage.setVal("experimentDynamicLoading", customEvent.detail.checked.toString());
+        });
+    };
+
+    document.addEventListener("astro:page-load", () => {
+        try {
+            const storageManager = new StoreManager<"radius||settings">("radius||settings");
+            initExperiments(storageManager);
+        } catch (err) {
+            console.log(err);
+        }
+    });
+</script>
