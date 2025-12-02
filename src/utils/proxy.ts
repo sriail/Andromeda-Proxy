@@ -40,6 +40,25 @@ class SW {
     }
 
     /**
+     * Async method to get the SW instance, waiting for it to be available
+     */
+    static async getInstanceAsync(): Promise<SW> {
+        // Check immediately first
+        if (SW.#instance.size !== 0) {
+            return SW.getInstance().next().value! as SW;
+        }
+        // Wait for instance to be available
+        return new Promise((resolve) => {
+            const i = setInterval(() => {
+                if (SW.#instance.size !== 0) {
+                    clearInterval(i);
+                    resolve(SW.getInstance().next().value! as SW);
+                }
+            }, 10);
+        });
+    }
+
+    /**
      * Returns a promise that resolves when the SW instance is ready to use
      */
     ready(): Promise<void> {
@@ -140,6 +159,15 @@ class SW {
         this.#storageManager = new StoreManager("radius||settings");
         const checkScripts = (): Promise<void> => {
             return new Promise((resolve) => {
+                // Check immediately first
+                if (
+                    typeof __uv$config !== "undefined" &&
+                    typeof $scramjetLoadController !== "undefined"
+                ) {
+                    resolve();
+                    return;
+                }
+                // Then poll at reasonable intervals to reduce CPU usage
                 const t = setInterval(() => {
                     if (
                         typeof __uv$config !== "undefined" &&
@@ -148,7 +176,7 @@ class SW {
                         clearInterval(t);
                         resolve();
                     }
-                });
+                }, 10); // Check every 10ms instead of as fast as possible
             });
         };
         createScript("/vu/uv.bundle.js", true);

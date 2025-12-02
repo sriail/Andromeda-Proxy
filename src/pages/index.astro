@@ -55,8 +55,8 @@ const link = Astro.url.searchParams.get("redir");
         }
         const client = new BareClient();
         
-        // Get SW instance and wait for it to be ready
-        const sw = SW.getInstance().next().value!;
+        // Get SW instance asynchronously and wait for it to be ready
+        const sw = await SW.getInstanceAsync();
         await sw.ready();
         
         // Setup iframe interceptor to prevent new tabs/windows

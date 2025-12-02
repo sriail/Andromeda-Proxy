@@ -15,7 +15,7 @@ import { Icon } from "astro-icon/components";
 <script>
     import { SW } from "@utils/proxy.ts";
 
-    const init = () => {
+    const init = async () => {
         const upperSearchInput = document.getElementById("upperSearchInput") as HTMLInputElement;
         const iframe = document.getElementById("iframe") as HTMLIFrameElement | null;
         const bhl = document.getElementById("bhl") as HTMLDivElement | null;
@@ -23,8 +23,8 @@ import { Icon } from "astro-icon/components";
 
         if (!upperSearchInput) return;
 
-        // Get SW instance and wait for it to be ready
-        const sw = SW.getInstance().next().value;
+        // Get SW instance asynchronously and wait for it to be ready
+        const sw = await SW.getInstanceAsync();
         if (!sw) return;
 
         // Function to handle "about:" URLs
@@ -173,9 +173,9 @@ import { Icon } from "astro-icon/components";
         document.addEventListener('astro:after-swap', updateURLDisplay);
     };
 
-    document.addEventListener("astro:page-load", () => {
+    document.addEventListener("astro:page-load", async () => {
         try {
-            init();
+            await init();
         } catch (_) {}
     });
 </script>
