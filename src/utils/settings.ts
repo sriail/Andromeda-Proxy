@@ -80,14 +80,26 @@ class Settings {
 
     proxy(prox?: "uv" | "sj") {
         // Only set if a value is explicitly passed, or if no value exists in storage
-        const existingValue = this.#storageManager.getVal("proxy");
-        this.#storageManager.setVal("proxy", prox || existingValue || "uv");
+        if (prox !== undefined) {
+            this.#storageManager.setVal("proxy", prox);
+        } else {
+            const existingValue = this.#storageManager.getVal("proxy");
+            if (!existingValue) {
+                this.#storageManager.setVal("proxy", "uv");
+            }
+        }
     }
 
     searchEngine(engine?: string) {
         // Only set if a value is explicitly passed, or if no value exists in storage
-        const existingValue = this.#storageManager.getVal("searchEngine");
-        this.#storageManager.setVal("searchEngine", engine || existingValue || SearchEngines.DuckDuckGo);
+        if (engine !== undefined) {
+            this.#storageManager.setVal("searchEngine", engine);
+        } else {
+            const existingValue = this.#storageManager.getVal("searchEngine");
+            if (!existingValue) {
+                this.#storageManager.setVal("searchEngine", SearchEngines.DuckDuckGo);
+            }
+        }
     }
 
     cloak(location: string) {
