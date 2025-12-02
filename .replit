@@ -1,0 +1,14 @@
+run = "npm run bstart"
+entrypoint = "server/index.ts"
+
+[nix]
+channel = "stable-23_11"
+
+[deployment]
+run = ["sh", "-c", "npm run bstart"]
+deploymentTarget = "cloudrun"
+ignorePorts = false
+
+[[ports]]
+localPort = 8080
+externalPort = 80

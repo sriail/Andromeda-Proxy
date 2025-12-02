@@ -1,0 +1,181 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<div id="upperSearchBar" class="flex flex-row items-center gap-2 w-full max-w-2xl border border-(--input) rounded-lg h-10 px-2 bg-(--background)">
+    <Icon name="lucide:search" class="w-4 h-4 text-(--muted-foreground)" />
+    <input 
+        id="upperSearchInput" 
+        type="text" 
+        class="text-sm focus-visible:outline-none w-full h-full placeholder:text-(--muted-foreground) bg-transparent text-(--foreground)" 
+        placeholder="Search or enter URL"
+    />
+</div>
+
+<script>
+    import { SW } from "@utils/proxy.ts";
+
+    const init = () => {
+        const upperSearchInput = document.getElementById("upperSearchInput") as HTMLInputElement;
+        const iframe = document.getElementById("iframe") as HTMLIFrameElement | null;
+        const bhl = document.getElementById("bhl") as HTMLDivElement | null;
+        const phl = document.getElementById("phl") as HTMLDivElement | null;
+
+        if (!upperSearchInput) return;
+
+        // Get SW instance and wait for it to be ready
+        const sw = SW.getInstance().next().value;
+        if (!sw) return;
+
+        // Function to handle "about:" URLs
+        const handleAboutURL = (url: string): boolean => {
+            const aboutMatch = url.match(/^about:(.+)$/);
+            if (aboutMatch) {
+                const target = aboutMatch[1];
+                switch (target) {
+                    case 'settings':
+                        window.location.href = '/settings';
+                        return true;
+                    case 'home':
+                        window.location.href = '/';
+                        // Clear the search bar for about:home
+                        upperSearchInput.value = '';
+                        return true;
+                    case '404':
+                        window.location.href = '/404';
+                        return true;
+                }
+            }
+            return false;
+        };
+
+        // Auto-select text when input is clicked
+        upperSearchInput.addEventListener("click", () => {
+            upperSearchInput.select();
+        });
+
+        // Update URL display when iframe loads
+        const updateURLDisplay = async () => {
+            if (!iframe || iframe.classList.contains("hidden")) {
+                // Check if we're on a special page
+                const currentPath = window.location.pathname;
+                if (currentPath === '/settings' || currentPath.startsWith('/settings/')) {
+                    upperSearchInput.value = 'about:settings';
+                } else if (currentPath === '/' || currentPath === '/index') {
+                    // For homepage, leave search bar empty (don't show about:home)
+                    upperSearchInput.value = '';
+                } else if (currentPath === '/404') {
+                    upperSearchInput.value = 'about:404';
+                } else {
+                    upperSearchInput.value = "";
+                }
+                return;
+            }
+
+            try {
+                const iframeWin = iframe.contentWindow;
+                if (iframeWin) {
+                    let pageURL = "";
+                    // Get the actual URL from the proxy
+                    if (iframeWin.__uv) {
+                        pageURL = iframeWin.__uv.location.href;
+                    } else if (iframeWin.$scramjet?.config?.prefix) {
+                        const scramjetURL = iframeWin.location.href;
+                        pageURL = scramjetURL
+                            .replace(iframeWin.location.origin, '')
+                            .replace(iframeWin.$scramjet.config.prefix, '');
+                    } else {
+                        pageURL = iframeWin.location.href;
+                    }
+                    upperSearchInput.value = pageURL;
+                }
+            } catch (e) {
+                // Cross-origin error - try to get URL from iframe src
+                try {
+                    const iframeSrc = iframe.src;
+                    if (iframeSrc) {
+                        // Decode URL from proxy prefix
+                        if (iframeSrc.includes('/~/uv/')) {
+                            // Extract and decode UV URL
+                            const encoded = iframeSrc.split('/~/uv/')[1];
+                            if (encoded && typeof __uv$config !== 'undefined') {
+                                try {
+                                    const decoded = __uv$config.decodeUrl!(encoded);
+                                    upperSearchInput.value = decoded;
+                                } catch {
+                                    upperSearchInput.value = iframeSrc;
+                                }
+                            }
+                        } else if (iframeSrc.includes('/~/scramjet/')) {
+                            const encoded = iframeSrc.split('/~/scramjet/')[1];
+                            upperSearchInput.value = encoded || iframeSrc;
+                        } else {
+                            upperSearchInput.value = iframeSrc;
+                        }
+                    }
+                } catch {
+                    // Fallback - just leave the current value
+                }
+            }
+        };
+
+        // Handle search/navigation
+        upperSearchInput.addEventListener("keypress", async (event: KeyboardEvent) => {
+            if (event.key === "Enter") {
+                const inputValue = upperSearchInput.value.trim();
+                
+                // Check for about: URLs first
+                if (handleAboutURL(inputValue)) {
+                    return;
+                }
+
+                // Regular URL handling - if iframe exists, use it directly
+                if (iframe && bhl && phl) {
+                    iframe.classList.remove("hidden");
+                    await sw.ready();
+                    iframe.src = sw.encodeURL(inputValue);
+                    bhl.classList.add("hidden");
+                    phl.classList.remove("hidden");
+                } else {
+                    // No iframe available (on settings or other about: pages)
+                    // Redirect to home page with the search query
+                    // Encode URL safely for base64 using standard UTF-8 pattern
+                    try {
+                        const encoded = btoa(unescape(encodeURIComponent(inputValue)));
+                        window.location.href = `/?redir=${encoded}`;
+                    } catch {
+                        // Fallback: use encodeURIComponent directly if encoding fails
+                        window.location.href = `/?redir=${encodeURIComponent(inputValue)}`;
+                    }
+                }
+            }
+        });
+
+        // Listen for iframe load events
+        if (iframe) {
+            iframe.addEventListener("load", updateURLDisplay);
+            
+            // Update on visibility change
+            const observer = new MutationObserver(() => {
+                updateURLDisplay();
+            });
+
+            observer.observe(iframe, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+
+        // Initial update
+        updateURLDisplay();
+
+        // Update on page navigation
+        document.addEventListener('astro:after-swap', updateURLDisplay);
+    };
+
+    document.addEventListener("astro:page-load", () => {
+        try {
+            init();
+        } catch (_) {}
+    });
+</script>

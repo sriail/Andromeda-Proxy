@@ -1,0 +1,33 @@
+{
+    "name": "Radius",
+    "description": "A simple and clean web proxy designed for speed and ease-of-use",
+    "repository": "https://github.com/RadiusProxy/Radius",
+    "logo": "https://radiusproxy.app/favicon.png",
+    "keywords": ["proxy", "web-proxy", "astro", "fastify", "ultraviolet", "scramjet"],
+    "buildpacks": [
+        {
+            "url": "heroku/nodejs"
+        }
+    ],
+    "formation": {
+        "web": {
+            "quantity": 1,
+            "size": "basic"
+        }
+    },
+    "env": {
+        "NODE_ENV": {
+            "description": "Node environment",
+            "value": "production"
+        },
+        "NPM_CONFIG_PRODUCTION": {
+            "description": "Install production dependencies only",
+            "value": "false"
+        }
+    },
+    "scripts": {
+        "postdeploy": "npm run build"
+    },
+    "stack": "heroku-22",
+    "addons": []
+}

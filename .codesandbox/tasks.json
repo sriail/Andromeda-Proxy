@@ -1,0 +1,37 @@
+{
+    "tasks": {
+        "install": {
+            "name": "Install Dependencies",
+            "command": "npm install",
+            "runAtStart": true
+        },
+        "build": {
+            "name": "Build Application",
+            "command": "npm run build",
+            "runAtStart": false
+        },
+        "dev": {
+            "name": "Start Development Server",
+            "command": "npm run dev",
+            "runAtStart": true,
+            "preview": {
+                "port": 4321
+            }
+        },
+        "start": {
+            "name": "Start Production Server",
+            "command": "npm run bstart",
+            "runAtStart": false,
+            "preview": {
+                "port": 8080
+            }
+        }
+    },
+    "setupTasks": [
+        {
+            "name": "Install",
+            "command": "npm install"
+        }
+    ],
+    "ports": [4321, 8080]
+}

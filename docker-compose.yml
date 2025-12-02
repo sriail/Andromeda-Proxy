@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  radius:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      # Optional: Bare server connection limiter settings
+      # Uncomment and adjust these values if you experience connection limit issues
+      # - BARE_MAX_CONNECTIONS_PER_IP=100
+      # - BARE_WINDOW_DURATION=60
+      # - BARE_BLOCK_DURATION=30
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
