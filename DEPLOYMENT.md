@@ -1,6 +1,6 @@
-# Radius Deployment Guide
+# Andromeda Deployment Guide
 
-This guide provides detailed instructions for deploying Radius to various hosting platforms.
+This guide provides detailed instructions for deploying Andromeda to various hosting platforms.
 
 ## Table of Contents
 - [Platform Compatibility](#platform-compatibility)
@@ -19,10 +19,10 @@ This guide provides detailed instructions for deploying Radius to various hostin
 ### One-Click Deployments
 
 #### Heroku
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/RadiusProxy/Radius)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/sriail/Andromeda-Proxy)
 
 #### Replit
-[![Run on Replit](https://replit.com/badge/github/RadiusProxy/Radius)](https://replit.com/new/github/RadiusProxy/Radius)
+[![Run on Replit](https://replit.com/badge/github/sriail/Andromeda-Proxy)](https://replit.com/new/github/sriail/Andromeda-Proxy)
 
 ## Detailed Deployment Instructions
 
@@ -98,10 +98,10 @@ heroku open
 **Using Docker:**
 ```bash
 # Build the image
-docker build -t radius .
+docker build -t andromeda .
 
 # Run the container
-docker run -p 8080:8080 radius
+docker run -p 8080:8080 andromeda
 
 # Access your app at http://localhost:8080
 ```
@@ -142,7 +142,7 @@ Set in the platform's dashboard or settings
 
 **Docker:**
 ```bash
-docker run -e PORT=8080 -e NODE_ENV=production -p 8080:8080 radius
+docker run -e PORT=8080 -e NODE_ENV=production -p 8080:8080 andromeda
 ```
 
 ## Troubleshooting
@@ -184,9 +184,9 @@ app.listen({ port: port, host: "0.0.0.0" })
 
 ## Additional Resources
 
-- [Radius GitHub Repository](https://github.com/RadiusProxy/Radius)
+- [Andromeda GitHub Repository](https://github.com/sriail/Andromeda-Proxy)
 - [Discord Community](https://discord.gg/cCfytCX6Sv)
-- [Report Issues](https://github.com/RadiusProxy/Radius/issues)
+- [Report Issues](https://github.com/sriail/Andromeda-Proxy/issues)
 
 ## Support
 
@@ -194,4 +194,4 @@ If you encounter any issues during deployment:
 1. Check the [Troubleshooting](#troubleshooting) section above
 2. Review platform-specific documentation
 3. Join our [Discord](https://discord.gg/cCfytCX6Sv) for community support
-4. Open an issue on [GitHub](https://github.com/RadiusProxy/Radius/issues)
+4. Open an issue on [GitHub](https://github.com/sriail/Andromeda-Proxy/issues)
