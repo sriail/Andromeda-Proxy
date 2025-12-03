@@ -13,7 +13,7 @@ import { Icon } from "astro-icon/components";
 </div>
 
 <script>
-    import { SW } from "@utils/proxy.ts";
+    import { SW, decodeScramjetURL } from "@utils/proxy.ts";
 
     const init = async () => {
         const upperSearchInput = document.getElementById("upperSearchInput") as HTMLInputElement;
@@ -71,26 +71,6 @@ import { Icon } from "astro-icon/components";
                 }
                 return;
             }
-
-            // Helper function to decode scramjet URLs
-            const decodeScramjetURL = (encodedPath: string): string => {
-                try {
-                    // Scramjet uses URL encoding for the proxied URL
-                    // First try direct decodeURIComponent
-                    let decoded = decodeURIComponent(encodedPath);
-                    // Handle double encoding if present
-                    if (decoded.includes('%')) {
-                        try {
-                            decoded = decodeURIComponent(decoded);
-                        } catch {
-                            // Already decoded, use as is
-                        }
-                    }
-                    return decoded;
-                } catch {
-                    return encodedPath;
-                }
-            };
 
             try {
                 const iframeWin = iframe.contentWindow;

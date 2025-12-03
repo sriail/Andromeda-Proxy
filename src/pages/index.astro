@@ -32,7 +32,7 @@ const link = Astro.url.searchParams.get("redir");
     </div>
 </Layout>
 <script>
-    import { SW } from "@utils/proxy.ts";
+    import { SW, decodeScramjetURL } from "@utils/proxy.ts";
     import { Settings } from "@utils/settings.ts";
     import { BareClient } from "@mercuryworkshop/bare-mux";
     import { setupIframeInterceptor } from "@utils/iframe-interceptor.ts";
@@ -88,25 +88,6 @@ const link = Astro.url.searchParams.get("redir");
                 buttons();
             }
         });
-
-        // Helper function to decode scramjet URLs
-        const decodeScramjetURL = (encodedPath: string): string => {
-            try {
-                // Scramjet uses URL encoding for the proxied URL
-                let decoded = decodeURIComponent(encodedPath);
-                // Handle double encoding if present
-                if (decoded.includes('%')) {
-                    try {
-                        decoded = decodeURIComponent(decoded);
-                    } catch {
-                        // Already decoded, use as is
-                    }
-                }
-                return decoded;
-            } catch {
-                return encodedPath;
-            }
-        };
 
         const getURL = async (): Promise<string> => {
             if (iframeWin!.__uv) {

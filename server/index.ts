@@ -18,6 +18,8 @@ import { Socket } from "node:net";
 
 // Helper function to sanitize HTTP header values
 // Removes characters that can cause http:Error(invalidHeaderValue)
+// NOTE: This is duplicated from public/sw.js because they run in different contexts
+// (Node.js server vs. browser service worker) and cannot share code directly
 const sanitizeHeaderValue = (value: string): string => {
     if (typeof value !== "string") {
         return String(value);
@@ -61,9 +63,7 @@ const serverFactory: FastifyServerFactory = (
         keepAlive: true,
         keepAliveTimeout: 65000, // 65 seconds
         // Increase timeout for long-running requests
-        requestTimeout: 120000, // 120 seconds
-        // Allow high-water mark for better streaming performance
-        highWaterMark: 65536 // 64KB
+        requestTimeout: 120000 // 120 seconds
     });
 
     server
