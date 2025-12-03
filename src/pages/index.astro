@@ -33,11 +33,13 @@ const link = Astro.url.searchParams.get("redir");
 </Layout>
 <style>
     /* Logo switching based on theme */
+    /* logo-dark class = dark colored logo (for light theme backgrounds) */
+    /* logo-light class = light colored logo (for dark theme backgrounds) */
     .logo-dark {
-        display: block;
+        display: none;
     }
     .logo-light {
-        display: none;
+        display: block;
     }
     :global(.light) .logo-dark {
         display: block;

@@ -112,7 +112,7 @@ class Settings {
     }
 
     /**
-     * Set's the theme mode (light, dark, or system)
+     * Sets the theme mode (light, dark, or system)
      *
      * @example
      * settings.themeMode('light') // Light theme
@@ -139,7 +139,7 @@ class Settings {
     }
 
     /**
-     * Set's the theme either to the current theme OR to a new one
+     * Sets the theme either to the current theme OR to a new one
      *
      * @example
      * // Retrieve the Settings instance
