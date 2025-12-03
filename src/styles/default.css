@@ -1,5 +1,6 @@
 /* Dark theme (default) */
-:root, .dark {
+:root,
+.dark {
     --background: hsl(214 27.37% 7.55%);
     --foreground: hsl(212 16% 82%);
     --muted: hsl(214 12% 16%);

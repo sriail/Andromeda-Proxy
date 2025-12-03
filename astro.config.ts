@@ -10,7 +10,6 @@ import { uvPath } from "@titaniumnetwork-dev/ultraviolet";
 import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 //@ts-expect-error No types
 import { epoxyPath } from "@mercuryworkshop/epoxy-transport";
-import { libcurlPath } from "@mercuryworkshop/libcurl-transport";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 //@ts-expect-error No types
 import { bareModulePath } from "@mercuryworkshop/bare-as-module3";
@@ -52,11 +51,6 @@ export default defineConfig({
                     {
                         src: `${epoxyPath}/**/*`.replace(/\\/g, "/"),
                         dest: "epoxy",
-                        overwrite: false
-                    },
-                    {
-                        src: `${libcurlPath}/**/*`.replace(/\\/g, "/"),
-                        dest: "libcurl",
                         overwrite: false
                     },
                     {

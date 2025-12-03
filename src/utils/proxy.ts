@@ -86,7 +86,7 @@ class SW {
             : this.#scramjetController!.encodeUrl(input);
     }
 
-    async setTransport(transport?: "epoxy" | "libcurl", get?: boolean) {
+    async setTransport(transport?: "epoxy", get?: boolean) {
         console.log("Setting transport");
         const routingMode = this.#storageManager.getVal("routingMode") || "wisp";
         const wispServer = (): string => {
@@ -111,27 +111,10 @@ class SW {
             // Use bare server transport
             await this.#baremuxConn!.setTransport("/baremod/index.mjs", [bareServer()]);
         } else {
-            // Use wisp server transport (default)
-            switch (transport) {
-                case "epoxy": {
-                    await this.#baremuxConn!.setTransport("/epoxy/index.mjs", [
-                        { wisp: wispServer() }
-                    ]);
-                    break;
-                }
-                case "libcurl": {
-                    await this.#baremuxConn!.setTransport("/libcurl/index.mjs", [
-                        { wisp: wispServer() }
-                    ]);
-                    break;
-                }
-                default: {
-                    await this.#baremuxConn!.setTransport("/epoxy/index.mjs", [
-                        { wisp: wispServer() }
-                    ]);
-                    break;
-                }
-            }
+            // Use wisp server transport with epoxy (default)
+            await this.#baremuxConn!.setTransport("/epoxy/index.mjs", [
+                { wisp: wispServer() }
+            ]);
         }
     }
 
