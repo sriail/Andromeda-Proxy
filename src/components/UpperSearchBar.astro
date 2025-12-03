@@ -81,9 +81,15 @@ import { Icon } from "astro-icon/components";
                         pageURL = iframeWin.__uv.location.href;
                     } else if (iframeWin.$scramjet?.config?.prefix) {
                         const scramjetURL = iframeWin.location.href;
-                        pageURL = scramjetURL
+                        const encodedURL = scramjetURL
                             .replace(iframeWin.location.origin, '')
                             .replace(iframeWin.$scramjet.config.prefix, '');
+                        // Decode the URL-encoded scramjet URL to show the real URL
+                        try {
+                            pageURL = decodeURIComponent(encodedURL);
+                        } catch {
+                            pageURL = encodedURL;
+                        }
                     } else {
                         pageURL = iframeWin.location.href;
                     }
@@ -108,7 +114,12 @@ import { Icon } from "astro-icon/components";
                             }
                         } else if (iframeSrc.includes('/~/scramjet/')) {
                             const encoded = iframeSrc.split('/~/scramjet/')[1];
-                            upperSearchInput.value = encoded || iframeSrc;
+                            // Decode the URL-encoded scramjet URL to show the real URL
+                            try {
+                                upperSearchInput.value = encoded ? decodeURIComponent(encoded) : iframeSrc;
+                            } catch {
+                                upperSearchInput.value = encoded || iframeSrc;
+                            }
                         } else {
                             upperSearchInput.value = iframeSrc;
                         }
