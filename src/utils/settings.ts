@@ -74,22 +74,18 @@ class Settings {
     theme(theme?: string) {
         this.#storageManager.setVal("theme", theme || this.#storageManager.getVal("theme"));
         const themeValue = theme || this.#storageManager.getVal("theme") || "default";
-        document.documentElement.className = themeValue;
-        // Update favicon based on theme
-        this.#updateFavicon(themeValue);
+        this.#applyTheme(themeValue);
     }
 
     /**
-     * Set's the theme mode (light, dark, or system)
+     * Sets the theme mode (light, dark, or system)
      */
     themeMode(mode?: "light" | "dark" | "system") {
         if (mode !== undefined) {
             this.#storageManager.setVal("themeMode", mode);
         }
         const modeValue = mode || this.#storageManager.getVal("themeMode") || "dark";
-        document.documentElement.className = modeValue;
-        // Update favicon based on mode
-        this.#updateFavicon(modeValue);
+        this.#applyTheme(modeValue);
     }
 
     /**
@@ -101,6 +97,14 @@ class Settings {
             return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
         return mode as "light" | "dark";
+    }
+
+    /**
+     * Apply theme and update favicon (shared logic)
+     */
+    #applyTheme(themeValue: string) {
+        document.documentElement.className = themeValue;
+        this.#updateFavicon(themeValue);
     }
 
     /**
