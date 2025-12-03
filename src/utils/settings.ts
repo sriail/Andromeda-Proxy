@@ -41,12 +41,18 @@ class Settings {
 
         const ready = (): Promise<boolean> => {
             return new Promise((resolve) => {
+                // Check immediately first
+                if (Settings.#instance.size !== 0) {
+                    resolve(true);
+                    return;
+                }
+                // Then poll at intervals
                 const i = setInterval(() => {
                     if (Settings.#instance.size !== 0) {
                         clearInterval(i);
                         resolve(true);
                     }
-                }, 100);
+                }, 50); // Reduced from 100ms to 50ms for faster response
             });
         };
 
@@ -73,11 +79,27 @@ class Settings {
     }
 
     proxy(prox?: "uv" | "sj") {
-        this.#storageManager.setVal("proxy", prox || "uv");
+        // Only set if a value is explicitly passed, or if no value exists in storage
+        if (prox !== undefined) {
+            this.#storageManager.setVal("proxy", prox);
+        } else {
+            const existingValue = this.#storageManager.getVal("proxy");
+            if (!existingValue) {
+                this.#storageManager.setVal("proxy", "uv");
+            }
+        }
     }
 
     searchEngine(engine?: string) {
-        this.#storageManager.setVal("searchEngine", engine || SearchEngines.DuckDuckGo);
+        // Only set if a value is explicitly passed, or if no value exists in storage
+        if (engine !== undefined) {
+            this.#storageManager.setVal("searchEngine", engine);
+        } else {
+            const existingValue = this.#storageManager.getVal("searchEngine");
+            if (!existingValue) {
+                this.#storageManager.setVal("searchEngine", SearchEngines.DuckDuckGo);
+            }
+        }
     }
 
     cloak(location: string) {
@@ -126,7 +148,11 @@ class Settings {
         if (enabled === true || enabled === false) {
             this.#storageManager.setVal("adBlock", enabled.valueOf().toString());
         } else {
-            this.#storageManager.setVal("adBlock", "true");
+            // Only set default if no value exists in storage
+            const existingValue = this.#storageManager.getVal("adBlock");
+            if (!existingValue) {
+                this.#storageManager.setVal("adBlock", "true");
+            }
         }
     }
 
