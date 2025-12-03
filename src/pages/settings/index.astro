@@ -29,12 +29,11 @@ Object.keys(SearchEngines).forEach((k) =>
                 ]
             } />
         </div>
-        <div class="mt-2" id="transportSection">
+        <div class="mt-2 hidden" id="transportSection">
             <p> Transport </p>
             <Dropdown id="tSwitcher" options={
                 [
-                    { name: 'Epoxy', value: 'epoxy', default: true },
-                    { name: 'Libcurl', value: 'libcurl' }
+                    { name: 'Epoxy', value: 'epoxy', default: true }
                 ]
             } />
         </div>
@@ -107,7 +106,7 @@ Object.keys(SearchEngines).forEach((k) =>
         const transportEl = document.getElementById("dropdownBox-tSwitcher") as HTMLSelectElement;
         transportEl.value = opts.storageManager.getVal("transport") || "epoxy"; 
         transportEl.addEventListener("change", async () => {
-            opts.sw.setTransport(transportEl.value as "epoxy" | "libcurl");
+            opts.sw.setTransport(transportEl.value as "epoxy");
         });
     }
 
