@@ -73,9 +73,61 @@ class Settings {
      */
     theme(theme?: string) {
         this.#storageManager.setVal("theme", theme || this.#storageManager.getVal("theme"));
-        theme === "default"
-            ? (document.documentElement.className = "default")
-            : (document.documentElement.className = theme || this.#storageManager.getVal("theme"));
+        const themeValue = theme || this.#storageManager.getVal("theme") || "default";
+        this.#applyTheme(themeValue);
+    }
+
+    /**
+     * Sets the theme mode (light, dark, or system)
+     */
+    themeMode(mode?: "light" | "dark" | "system") {
+        if (mode !== undefined) {
+            this.#storageManager.setVal("themeMode", mode);
+        }
+        const modeValue = mode || this.#storageManager.getVal("themeMode") || "dark";
+        this.#applyTheme(modeValue);
+    }
+
+    /**
+     * Get current effective theme (considering system preference)
+     */
+    getEffectiveTheme(): "light" | "dark" {
+        const mode = this.#storageManager.getVal("themeMode") || "dark";
+        if (mode === "system") {
+            return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        return mode as "light" | "dark";
+    }
+
+    /**
+     * Apply theme and update favicon (shared logic)
+     */
+    #applyTheme(themeValue: string) {
+        document.documentElement.className = themeValue;
+        this.#updateFavicon(themeValue);
+    }
+
+    /**
+     * Update favicon based on theme
+     */
+    #updateFavicon(theme: string) {
+        const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+        if (!favicon) return;
+
+        let isDark = false;
+        if (theme === "system") {
+            isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        } else if (
+            theme === "dark" ||
+            theme === "default" ||
+            theme === "midnight" ||
+            theme === "catpuccin" ||
+            theme === "cyberpunk"
+        ) {
+            isDark = true;
+        }
+
+        favicon.href = isDark ? "/favicon-light.png" : "/favicon-dark.png";
     }
 
     proxy(prox?: "uv" | "sj") {

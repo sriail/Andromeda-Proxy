@@ -9,11 +9,33 @@
         settings.proxy();
         settings.adBlock();
         await sw.wispServer();
+        
+        // Initialize theme mode if not set
+        const storageManager = new (await import("@utils/storage")).StoreManager<"radius||settings">("radius||settings");
+        const themeMode = storageManager.getVal('themeMode');
+        if (themeMode) {
+            settings.themeMode(themeMode as "light" | "dark" | "system");
+        } else {
+            settings.themeMode("dark");
+        }
+        
+        // Listen for system theme changes
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+            const currentMode = storageManager.getVal('themeMode');
+            if (currentMode === "system") {
+                settings.themeMode("system");
+            }
+        });
     }
     
     init();
     document.addEventListener('astro:after-swap', async () => {
-        //const settings = await Settings.getInstance();
-        settings.theme();
+        const storageManager = new (await import("@utils/storage")).StoreManager<"radius||settings">("radius||settings");
+        const themeMode = storageManager.getVal('themeMode');
+        if (themeMode) {
+            settings.themeMode(themeMode as "light" | "dark" | "system");
+        } else {
+            settings.theme();
+        }
     });
 </script>

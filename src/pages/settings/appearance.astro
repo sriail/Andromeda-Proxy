@@ -8,12 +8,18 @@ import Input from "@components/ui/Input.astro";
 import Button from "@components/ui/Button.astro";
 import { type DropdownOptions } from "@utils/types";
 
-const Themes: DropdownOptions[] = [{ name: "Default", value: "default" }];
+const Themes: DropdownOptions[] = [
+    { name: "Light", value: "light" },
+    { name: "Dark", value: "dark" },
+    { name: "System", value: "system" }
+];
+
+const ColorThemes: DropdownOptions[] = [{ name: "Default", value: "default" }];
 const files = await readdir(pathJoin("src", "styles", "themes"), {
     encoding: "utf-8"
 });
 files.forEach((name) => {
-    Themes.push({
+    ColorThemes.push({
         name: name.toLowerCase().charAt(0).toUpperCase() + name.slice(1).replace(".css", ""),
         value: name.toLowerCase().replace(".css", "")
     });
@@ -22,8 +28,12 @@ files.forEach((name) => {
 <SettingsLayout active="appearance" title="Appearance">
     <div class="w-full flex-grow">
         <div>
-            <p> Themes </p>
-            <Dropdown id="themeSwitcher" options={Themes} />
+            <p> Theme Mode </p>
+            <Dropdown id="themeModeSwitcher" options={Themes} />
+        </div>
+        <div class="mt-4">
+            <p> Color Theme </p>
+            <Dropdown id="themeSwitcher" options={ColorThemes} />
         </div>
     </div>
 </SettingsLayout>
@@ -33,10 +43,19 @@ files.forEach((name) => {
     import { StoreManager } from "@utils/storage";
 
     const themes = async (settings: Settings, storage: StoreManager<"radius||settings">) => {
-        const dropdown = document.getElementById("dropdownBox-themeSwitcher") as HTMLSelectElement;
-        dropdown.value = storage.getVal('theme');
-        dropdown.addEventListener("change", async () => {
-            settings.theme(dropdown.value);
+        const themeModeDropdown = document.getElementById("dropdownBox-themeModeSwitcher") as HTMLSelectElement;
+        const colorThemeDropdown = document.getElementById("dropdownBox-themeSwitcher") as HTMLSelectElement;
+        
+        // Initialize theme mode dropdown
+        themeModeDropdown.value = storage.getVal('themeMode') || 'dark';
+        themeModeDropdown.addEventListener("change", async () => {
+            settings.themeMode(themeModeDropdown.value as "light" | "dark" | "system");
+        });
+
+        // Initialize color theme dropdown (for dark-themed color schemes)
+        colorThemeDropdown.value = storage.getVal('theme') || 'default';
+        colorThemeDropdown.addEventListener("change", async () => {
+            settings.theme(colorThemeDropdown.value);
         });
     };
 

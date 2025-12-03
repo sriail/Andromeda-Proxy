@@ -20,10 +20,28 @@ readdir(pathJoin("src", "styles", "themes"), { encoding: "utf-8" }, (err, files)
         <Loader transition:persist />
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" href="/favicon.png" />
+		<link rel="icon" id="favicon" href="/favicon-light.png" />
 		<meta name="generator" content={Astro.generator} />
         <title>Andromeda</title>
         <ClientRouter fallback="animate" />
+        <!-- Favicon theme script - runs before page loads to prevent flash -->
+        <script is:inline>
+            (function() {
+                const themeMode = localStorage.getItem('radius||settings||themeMode') || 'dark';
+                let isDark = false;
+                if (themeMode === 'system') {
+                    isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                } else if (themeMode === 'dark') {
+                    isDark = true;
+                }
+                document.documentElement.className = themeMode;
+                // Update favicon
+                const favicon = document.querySelector('link[rel="icon"]');
+                if (favicon) {
+                    favicon.href = isDark ? '/favicon-light.png' : '/favicon-dark.png';
+                }
+            })();
+        </script>
         <!-- Google tag (gtag.js) -->
         <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-FQFRWNVPMG"></script>
         <script is:inline>
