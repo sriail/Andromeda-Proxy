@@ -10,12 +10,12 @@ const path = Astro.url.pathname;
 ---
 <div class="h-14 fixed bg-(--background) border-b border-b-(--border) px-4 w-full z-10 flex items-center font-inter">
     <div class="flex items-center gap-3 w-64">
-        <button id="menu" class="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium ring-(--offset-background) h-10 w-10 hover:bg-(--accent)">
+        <button id="menu" class="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-(--offset-background) h-10 w-10 hover:bg-(--accent) transition-colors">
             <Icon name="lucide:menu" class="text-(--foreground) h-7 w-7" />
         </button>
         <a id="bhl" class="flex items-center gap-2" href="/">
-            <Image src={andromedaLogoDark} alt="Andromeda" class="w-8 h-8 block dark:hidden" />
-            <Image src={andromedaLogoLight} alt="Andromeda" class="w-8 h-8 hidden dark:block" />
+            <Image src={andromedaLogoDark} alt="Andromeda" class="w-8 h-8 logo-dark" />
+            <Image src={andromedaLogoLight} alt="Andromeda" class="w-8 h-8 logo-light" />
             <h1 class="text-xl font-bold text-(--foreground)"> Andromeda </h1>
         </a>
         <div id="phl" class="flex items-center gap-2 hidden">
@@ -29,13 +29,13 @@ const path = Astro.url.pathname;
         </div>
     </div>
     <div class="flex items-center gap-2 text-(--foreground) w-64 justify-end">
-        <button id="pal" class="font-medium rounded-lg h-10 w-10 hover:bg-(--accent) inline-flex items-center justify-center transition-colors cursor-pointer">
+        <button id="pal" class="font-medium rounded-xl h-10 w-10 hover:bg-(--accent) inline-flex items-center justify-center transition-colors cursor-pointer">
             <Icon name="lucide:arrow-left" class="h-6 w-6" />
         </button>
-        <button id="par" class="font-medium h-10 w-10 rounded-lg hover:bg-(--accent) inline-flex items-center justify-center transition-colors cursor-pointer">
+        <button id="par" class="font-medium h-10 w-10 rounded-xl hover:bg-(--accent) inline-flex items-center justify-center transition-colors cursor-pointer">
             <Icon name="lucide:arrow-right" class="h-6 w-6"  />
         </button>
-        <button id="prl" class="font-medium h-10 w-10 rounded-lg hover:bg-(--accent) inline-flex items-center justify-center transition-colors cursor-pointer">
+        <button id="prl" class="font-medium h-10 w-10 rounded-xl hover:bg-(--accent) inline-flex items-center justify-center transition-colors cursor-pointer">
             <Icon name="lucide:rotate-cw" class="h-6 w-6"  />
         </button>
     </div>
@@ -43,30 +43,30 @@ const path = Astro.url.pathname;
 <div class="fixed w-full h-full z-10 flex flex-row pointer-events-auto invisible transition duration-500 font-inter" id="navigation">
     <div id="innerNav" class="flex flex-col gap-6 w-72 h-full bg-(--background) border-r border-r-(--border) p-6 transition duration-250 shadow-lg">
         <div class="w-full flex flex-row justify-between transition duration-250">
-            <Image src={andromedaLogoDark} alt="Andromeda" class="w-10 h-10 block dark:hidden" />
-            <Image src={andromedaLogoLight} alt="Andromeda" class="w-10 h-10 hidden dark:block" />
+            <Image src={andromedaLogoDark} alt="Andromeda" class="w-10 h-10 logo-dark" />
+            <Image src={andromedaLogoLight} alt="Andromeda" class="w-10 h-10 logo-light" />
             <button id="exitNav">
                 <Icon name="lucide:x" class="text-(--muted-foreground)" />
             </button>
         </div>
         <div class="flex flex-col gap-3 transition duration-250"> 
             <div class="text-(--secondary-foreground) w-full border-b border-b-(--border) pb-3 flex flex-col gap-3">
-                <a href="/" class=`flex flex-row gap-2 items-center rounded-lg h-10 w-full whitespace-nowrap px-4 py-2 font-medium text-sm ${path === '/' ? 'bg-(--secondary)': 'bg-(--background)'} transition-all duration-200 hover:bg-(--secondary) hover:scale-105 focus:ring-(--ring) focus:ring-2`>
+                <a href="/" class=`flex flex-row gap-2 items-center rounded-xl h-10 w-full whitespace-nowrap px-4 py-2 font-medium text-sm ${path === '/' ? 'bg-(--secondary)': 'bg-(--background)'} transition-all duration-200 hover:bg-(--secondary) hover:scale-105 focus:ring-(--ring) focus:ring-2`>
                     <Icon name="lucide:house" class="text-lg w-6 h-6" /> Home
                 </a>
                 {/** Added Games page for potential future implmentation
-                    <a href="/games" class=`flex flex-row gap-2 items-center rounded-lg h-10 w-full whitespace-nowrap px-4 py-2 font-medium text-sm ${path.includes('/games') ? 'bg-(--secondary)': 'bg-(--background)'} transition-all duration-200 hover:bg-(--secondary) hover:scale-105 focus:ring-(--ring) focus:ring-2`>
+                    <a href="/games" class=`flex flex-row gap-2 items-center rounded-xl h-10 w-full whitespace-nowrap px-4 py-2 font-medium text-sm ${path.includes('/games') ? 'bg-(--secondary)': 'bg-(--background)'} transition-all duration-200 hover:bg-(--secondary) hover:scale-105 focus:ring-(--ring) focus:ring-2`>
                     <Icon name="lucide:gamepad" class="text-lg w-6 h-6" /> Games
                     </a>
                 */}
                 {/** Added Apps page for potential future implmentation
-                <a href="/apps" class=`flex flex-row gap-2 items-center rounded-lg h-10 w-full whitespace-nowrap px-4 py-2 font-medium text-sm ${path.includes('/apps') ? 'bg-(--secondary)': 'bg-(--background)'} transition-all duration-200 hover:bg-(--secondary) hover:scale-105 focus:ring-(--ring) focus:ring-2`>
+                <a href="/apps" class=`flex flex-row gap-2 items-center rounded-xl h-10 w-full whitespace-nowrap px-4 py-2 font-medium text-sm ${path.includes('/apps') ? 'bg-(--secondary)': 'bg-(--background)'} transition-all duration-200 hover:bg-(--secondary) hover:scale-105 focus:ring-(--ring) focus:ring-2`>
                     <Icon name="lucide:layout-grid" class="text-lg w-6 h-6" /> Apps
                 </a>
              */}
             </div>
             <div class="text-(--secondary-foreground) w-full flex flex-col">
-                <a href="/settings" class=`flex flex-row gap-2 items-center rounded-lg h-10 w-full whitespace-nowrap px-4 py-2 font-medium text-sm ${path.includes('/settings') ? 'bg-(--secondary)': 'bg-(--background)'} transition-all duration-200 hover:bg-(--secondary) hover:scale-105 focus:ring-(--ring) focus:ring-2`>
+                <a href="/settings" class=`flex flex-row gap-2 items-center rounded-xl h-10 w-full whitespace-nowrap px-4 py-2 font-medium text-sm ${path.includes('/settings') ? 'bg-(--secondary)': 'bg-(--background)'} transition-all duration-200 hover:bg-(--secondary) hover:scale-105 focus:ring-(--ring) focus:ring-2`>
                     <Icon name="lucide:settings-2" class="text-lg w-6 h-6" /> Settings
                 </a>
             </div>
@@ -80,6 +80,27 @@ const path = Astro.url.pathname;
     }
     #body-hide {
         opacity: 0%;
+    }
+    /* Logo switching based on theme */
+    /* logo-dark class = dark colored logo (for light theme backgrounds) */
+    /* logo-light class = light colored logo (for dark theme backgrounds) */
+    .logo-dark {
+        display: none;
+    }
+    .logo-light {
+        display: block;
+    }
+    :global(.light) .logo-dark {
+        display: block;
+    }
+    :global(.light) .logo-light {
+        display: none;
+    }
+    :global(.dark) .logo-dark {
+        display: none;
+    }
+    :global(.dark) .logo-light {
+        display: block;
     }
 </style>
 <script>    

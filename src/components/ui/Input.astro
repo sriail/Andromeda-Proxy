@@ -5,4 +5,4 @@ interface Props {
 }
 const { placeholder, id } = Astro.props;
 ---
-<input class="h-10 w-full rounded-md border border-(--border) px-3 py-2 text-sm" placeholder={placeholder} id={id} ></input>
+<input class="h-10 w-full rounded-xl border border-(--border) px-3 py-2 text-sm bg-(--background) text-(--foreground) focus:outline-none focus:ring-2 focus:ring-(--ring) transition-all" placeholder={placeholder} id={id} ></input>

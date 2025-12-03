@@ -18,11 +18,23 @@ files.forEach((name) => {
         value: name.toLowerCase().replace(".css", "")
     });
 });
+
+const ThemeModes: DropdownOptions[] = [
+    { name: "Dark", value: "dark" },
+    { name: "Light", value: "light" },
+    { name: "System", value: "system" }
+];
 ---
 <SettingsLayout active="appearance" title="Appearance">
-    <div class="w-full flex-grow">
+    <div class="w-full flex-grow flex flex-col gap-6">
         <div>
-            <p> Themes </p>
+            <p class="text-sm font-medium mb-2"> Theme Mode </p>
+            <p class="text-xs text-(--muted-foreground) mb-2"> Choose between light, dark, or system theme </p>
+            <Dropdown id="themeModeSwitcher" options={ThemeModes} />
+        </div>
+        <div>
+            <p class="text-sm font-medium mb-2"> Color Theme </p>
+            <p class="text-xs text-(--muted-foreground) mb-2"> Choose a custom color theme </p>
             <Dropdown id="themeSwitcher" options={Themes} />
         </div>
     </div>
@@ -34,7 +46,18 @@ files.forEach((name) => {
 
     const themes = async (settings: Settings, storage: StoreManager<"radius||settings">) => {
         const dropdown = document.getElementById("dropdownBox-themeSwitcher") as HTMLSelectElement;
-        dropdown.value = storage.getVal('theme');
+        const themeModeDropdown = document.getElementById("dropdownBox-themeModeSwitcher") as HTMLSelectElement;
+        
+        // Set initial values
+        dropdown.value = storage.getVal('theme') || 'default';
+        themeModeDropdown.value = storage.getVal('themeMode') || 'dark';
+        
+        // Theme mode change handler
+        themeModeDropdown.addEventListener("change", async () => {
+            settings.themeMode(themeModeDropdown.value as 'light' | 'dark' | 'system');
+        });
+        
+        // Custom theme change handler
         dropdown.addEventListener("change", async () => {
             settings.theme(dropdown.value);
         });
