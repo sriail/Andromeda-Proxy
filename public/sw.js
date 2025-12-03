@@ -71,16 +71,17 @@ function sanitizeHeaderValue(value) {
     
     // Remove or replace characters that are invalid in HTTP header values
     // Valid: tab (0x09) and printable ASCII (0x20-0x7E)
-    let sanitized = '';
+    // Use array for better performance with long header values
+    const chars = [];
     for (let i = 0; i < value.length; i++) {
         const code = value.charCodeAt(i);
         // Allow tab (0x09) and printable ASCII (0x20-0x7E)
         if (code === 0x09 || (code >= 0x20 && code <= 0x7E)) {
-            sanitized += value[i];
+            chars.push(value[i]);
         }
         // Skip invalid characters like null, carriage return, line feed, etc.
     }
-    return sanitized;
+    return chars.join('');
 }
 
 /**
@@ -91,7 +92,8 @@ function sanitizeHeaders(headers) {
     for (const [name, value] of headers.entries()) {
         try {
             const sanitizedValue = sanitizeHeaderValue(value);
-            if (sanitizedValue && sanitizedValue.trim()) {
+            // Check for non-empty value (sanitizeHeaderValue already removes invalid whitespace)
+            if (sanitizedValue) {
                 sanitized.set(name, sanitizedValue);
             }
         } catch (e) {
