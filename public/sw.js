@@ -61,10 +61,51 @@ function isHeavyCookieSite(url) {
     return HEAVY_COOKIE_DOMAINS.some((domain) => urlStr.includes(domain));
 }
 
+/**
+ * Sanitize HTTP header value by removing invalid characters
+ * HTTP headers must only contain printable ASCII characters (0x20-0x7E) plus HTAB (0x09)
+ * Invalid characters cause errors in transports like libcurl
+ */
+function sanitizeHeaderValue(value) {
+    if (typeof value !== 'string') return value;
+    
+    // Remove or replace characters that are invalid in HTTP header values
+    // Valid: tab (0x09) and printable ASCII (0x20-0x7E)
+    let sanitized = '';
+    for (let i = 0; i < value.length; i++) {
+        const code = value.charCodeAt(i);
+        // Allow tab (0x09) and printable ASCII (0x20-0x7E)
+        if (code === 0x09 || (code >= 0x20 && code <= 0x7E)) {
+            sanitized += value[i];
+        }
+        // Skip invalid characters like null, carriage return, line feed, etc.
+    }
+    return sanitized;
+}
+
+/**
+ * Sanitize all headers in a Headers object to ensure they contain valid HTTP characters
+ */
+function sanitizeHeaders(headers) {
+    const sanitized = new Headers();
+    for (const [name, value] of headers.entries()) {
+        try {
+            const sanitizedValue = sanitizeHeaderValue(value);
+            if (sanitizedValue && sanitizedValue.trim()) {
+                sanitized.set(name, sanitizedValue);
+            }
+        } catch (e) {
+            // Skip headers that can't be set
+            console.warn(`[SW] Skipping invalid header: ${name}`);
+        }
+    }
+    return sanitized;
+}
+
 // Helper function to ensure proper CAPTCHA handling
 function enhanceCaptchaRequest(request) {
-    // Clone the request to ensure all headers and properties are preserved
-    const headers = new Headers(request.headers);
+    // Clone the request with sanitized headers to prevent InvalidHeaderValue errors
+    const headers = sanitizeHeaders(request.headers);
 
     // Ensure proper headers for CAPTCHA requests
     if (!headers.has("Accept")) {
@@ -81,7 +122,8 @@ function enhanceCaptchaRequest(request) {
 
 // Enhanced request handler for heavy cookie sites
 function enhanceHeavyCookieRequest(request) {
-    const headers = new Headers(request.headers);
+    // Clone the request with sanitized headers to prevent InvalidHeaderValue errors
+    const headers = sanitizeHeaders(request.headers);
 
     // Ensure credentials are included for cookie persistence
     return new Request(request, {

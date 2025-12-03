@@ -94,9 +94,15 @@ const link = Astro.url.searchParams.get("redir");
                 return iframeWin!.__uv.location.href
             }
             else if (iframeWin!.$scramjet?.config?.prefix) {
-                return iframeWin!.location.href
+                const scramjetURL = iframeWin!.location.href
                     .replace(iframeWin!.location.origin, '')
-                    .replace(iframeWin!.$scramjet.config.prefix, '')
+                    .replace(iframeWin!.$scramjet.config.prefix, '');
+                try {
+                    // Decode the URL-encoded scramjet URL
+                    return decodeURIComponent(scramjetURL);
+                } catch {
+                    return scramjetURL;
+                }
             }
             else {
                 // Fallback if neither proxy is available
