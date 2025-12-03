@@ -2,7 +2,7 @@
 import { Icon } from "astro-icon/components";
 ---
 
-<form id="upperSearchBar" class="flex items-center bg-(--search-bg) rounded-full border border-(--search-border) w-full max-w-2xl transition-shadow duration-200 hover:shadow-md focus-within:shadow-md focus-within:border-(--search-focus-border) h-10">
+<div id="upperSearchBar" class="flex items-center bg-(--search-bg) rounded-full border border-(--search-border) w-full max-w-2xl transition-shadow duration-200 hover:shadow-md focus-within:shadow-md focus-within:border-(--search-focus-border) h-10">
     <Icon name="lucide:search" class="ml-3 h-4 w-4 text-(--muted-foreground)" />
     <input 
         id="upperSearchInput" 
@@ -10,7 +10,7 @@ import { Icon } from "astro-icon/components";
         class="flex-1 outline-none rounded-full bg-transparent text-(--foreground) placeholder:text-(--muted-foreground) px-3 py-2 text-sm" 
         placeholder="Search or enter URL"
     />
-</form>
+</div>
 
 <script>
     import { SW } from "@utils/proxy.ts";

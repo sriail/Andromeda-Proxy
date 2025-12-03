@@ -17,10 +17,10 @@ const link = Astro.url.searchParams.get("redir");
                 <Image src={andromedaLogoLight} alt="Andromeda" class="h-16 w-16 logo-light" />
                 <h1 class="text-6xl font-semibold">Andromeda</h1>
             </div>
-            <form id="searchForm" class="flex items-center bg-(--search-bg) rounded-full border border-(--search-border) w-4/5 md:w-[26rem] h-12 shadow-lg transition-shadow duration-200 hover:shadow-xl focus-within:shadow-xl focus-within:border-(--search-focus-border)">
+            <div id="searchForm" class="flex items-center bg-(--search-bg) rounded-full border border-(--search-border) w-4/5 md:w-[26rem] h-12 shadow-lg transition-shadow duration-200 hover:shadow-xl focus-within:shadow-xl focus-within:border-(--search-focus-border)">
                 <Icon name="lucide:search" class="ml-5 h-5 w-5 text-(--muted-foreground)" />
                 <input id="input" type="text" name="Search" class="flex-1 outline-none rounded-full bg-transparent text-(--foreground) placeholder:text-(--muted-foreground) px-4 py-3 text-base" placeholder="Search the web">
-            </form>
+            </div>
             {/** <div class="w-full flex flex-row gap-2">
                 <div class="rounded-md border-2">
                     t
