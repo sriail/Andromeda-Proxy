@@ -13,14 +13,14 @@ const link = Astro.url.searchParams.get("redir");
     <div class="h-full flex items-center justify-center font-inter">
         <div class="flex flex-col items-center gap-6">
             <div class="flex items-center gap-2">
-                <Image src={andromedaLogoDark} alt="Andromeda" class="h-16 w-16 block dark:hidden" />
-                <Image src={andromedaLogoLight} alt="Andromeda" class="h-16 w-16 hidden dark:block" />
+                <Image src={andromedaLogoDark} alt="Andromeda" class="main-logo-dark h-16 w-16" />
+                <Image src={andromedaLogoLight} alt="Andromeda" class="main-logo-light h-16 w-16" />
                 <h1 class="text-6xl font-semibold">Andromeda</h1>
             </div>
-            <div class="flex flex-row items-center gap-2 w-4/5 md:w-[26rem] border border-(--input) rounded-lg h-12 p-2">
-                <Icon name="lucide:search" />
-                <input id="input" type="text" name="Search" class="text-md md:text-sm focus-visible:outline-none w-full h-full placeholder:text-(--muted-foreground)" id="search" placeholder="Search the web">
-            </div>
+            <form class="flex items-center bg-white dark:bg-(--card) rounded-full border border-gray-200 dark:border-(--border) w-4/5 md:w-[26rem] h-12 shadow-lg transition-shadow duration-200 hover:shadow-md focus-within:shadow-md focus-within:border-gray-300 dark:focus-within:border-(--input)">
+                <Icon name="lucide:search" class="ml-5 h-5 w-5 text-gray-400 dark:text-(--muted-foreground)" />
+                <input id="input" type="text" name="Search" class="flex-1 outline-none rounded-full bg-transparent text-gray-900 dark:text-(--foreground) placeholder:text-gray-400 dark:placeholder:text-(--muted-foreground) px-4 py-3 text-base" placeholder="Search the web">
+            </form>
             {/** <div class="w-full flex flex-row gap-2">
                 <div class="rounded-md border-2">
                     t
@@ -31,6 +31,48 @@ const link = Astro.url.searchParams.get("redir");
         <link-element data-link={link} />
     </div>
 </Layout>
+<style>
+    /* Logo visibility based on theme mode */
+    .main-logo-dark {
+        display: block;
+    }
+    .main-logo-light {
+        display: none;
+    }
+    /* Dark theme - show light logo */
+    :global(.dark) .main-logo-dark,
+    :global(:root:not(.light):not(.system)) .main-logo-dark {
+        display: none;
+    }
+    :global(.dark) .main-logo-light,
+    :global(:root:not(.light):not(.system)) .main-logo-light {
+        display: block;
+    }
+    /* Light theme - show dark logo */
+    :global(.light) .main-logo-dark {
+        display: block;
+    }
+    :global(.light) .main-logo-light {
+        display: none;
+    }
+    /* System theme - respect OS preference */
+    @media (prefers-color-scheme: dark) {
+        :global(.system) .main-logo-dark {
+            display: none;
+        }
+        :global(.system) .main-logo-light {
+            display: block;
+        }
+    }
+    @media (prefers-color-scheme: light) {
+        :global(.system) .main-logo-dark {
+            display: block;
+        }
+        :global(.system) .main-logo-light {
+            display: none;
+        }
+    }
+</style>
 <script>
     import { SW } from "@utils/proxy.ts";
     import { Settings } from "@utils/settings.ts";
