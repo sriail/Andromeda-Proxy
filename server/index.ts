@@ -110,7 +110,7 @@ const serverFactory: FastifyServerFactory = (
                 } else if (req.url?.endsWith("/wisp/") || req.url?.endsWith("/adblock/")) {
                     wisp.routeRequest(req, socket as Socket, head);
                 } else {
-                    // Handle other WebSocket upgrades gracefully
+                    // Reject unrecognized WebSocket upgrade requests
                     socket.destroy();
                 }
             } catch (error) {
@@ -204,7 +204,7 @@ app.listen({ port: port, host: "0.0.0.0" })
         console.log(`Server listening on http://localhost:${port}/`);
         console.log(`Server also listening on http://0.0.0.0:${port}/`);
         console.log(`Connection timeout: 120s, Keep-alive timeout: 65s`);
-        console.log(`Max header size: 64KB, Max headers: 200, Body limit: 10MB`);
+        console.log(`Max header size: 64KB, Body limit: 10MB`);
     })
     .catch((error) => {
         console.error("Failed to start server:", error);

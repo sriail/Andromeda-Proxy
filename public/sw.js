@@ -179,12 +179,8 @@ self.addEventListener("fetch", function (event) {
                             redirect: "follow"
                         });
                         
-                        if (isSjRequest) {
-                            // For scramjet, try to fetch directly
-                            response = await fetch(sanitizedRequest);
-                        } else {
-                            response = await fetch(sanitizedRequest);
-                        }
+                        // Retry with sanitized request
+                        response = await fetch(sanitizedRequest);
                     } else {
                         throw fetchError;
                     }
