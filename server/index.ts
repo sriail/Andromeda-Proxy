@@ -13,10 +13,29 @@ import { createBareServer } from "@tomphttp/bare-server-node";
 
 //@ts-ignore this is created at runtime. No types associated w/it
 import { handler as astroHandler } from "../dist/server/entry.mjs";
-import { createServer } from "node:http";
+import { createServer, Agent as HttpAgent } from "node:http";
+import { Agent as HttpsAgent } from "node:https";
 import { Socket } from "node:net";
 
+// Create custom HTTP agents that allow non-standard headers from external sites
+// This is necessary for proxy servers that must handle arbitrary external content
+const httpAgent = new HttpAgent({
+    keepAlive: true,
+    keepAliveMsecs: 1000,
+    maxSockets: 256,
+    maxFreeSockets: 64
+});
+
+const httpsAgent = new HttpsAgent({
+    keepAlive: true,
+    keepAliveMsecs: 1000,
+    maxSockets: 256,
+    maxFreeSockets: 64
+});
+
 const bareServer = createBareServer("/bare/", {
+    httpAgent,
+    httpsAgent,
     connectionLimiter: {
         // Optimized for sites with heavy cookies and complex browser services
         maxConnectionsPerIP: parseInt(process.env.BARE_MAX_CONNECTIONS_PER_IP as string) || 1000,
