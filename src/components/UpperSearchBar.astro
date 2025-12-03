@@ -79,11 +79,26 @@ import { Icon } from "astro-icon/components";
                     // Get the actual URL from the proxy
                     if (iframeWin.__uv) {
                         pageURL = iframeWin.__uv.location.href;
-                    } else if (iframeWin.$scramjet?.config?.prefix) {
-                        const scramjetURL = iframeWin.location.href;
-                        pageURL = scramjetURL
-                            .replace(iframeWin.location.origin, '')
-                            .replace(iframeWin.$scramjet.config.prefix, '');
+                    } else if (iframeWin.$scramjet) {
+                        // Try to get the real URL from scramjet's location object
+                        if (iframeWin.$scramjet.url) {
+                            pageURL = iframeWin.$scramjet.url.href || iframeWin.$scramjet.url;
+                        } else if (iframeWin.$scramjet.location) {
+                            pageURL = iframeWin.$scramjet.location.href;
+                        } else {
+                            // Fallback: extract from URL
+                            const scramjetURL = iframeWin.location.href;
+                            const prefix = iframeWin.$scramjet.config?.prefix || '/~/scramjet/';
+                            const encoded = scramjetURL
+                                .replace(iframeWin.location.origin, '')
+                                .replace(prefix, '');
+                            // Decode the URL-encoded URL
+                            try {
+                                pageURL = decodeURIComponent(encoded);
+                            } catch {
+                                pageURL = encoded;
+                            }
+                        }
                     } else {
                         pageURL = iframeWin.location.href;
                     }
@@ -108,7 +123,12 @@ import { Icon } from "astro-icon/components";
                             }
                         } else if (iframeSrc.includes('/~/scramjet/')) {
                             const encoded = iframeSrc.split('/~/scramjet/')[1];
-                            upperSearchInput.value = encoded || iframeSrc;
+                            // Decode the URL-encoded URL
+                            try {
+                                upperSearchInput.value = decodeURIComponent(encoded);
+                            } catch {
+                                upperSearchInput.value = encoded || iframeSrc;
+                            }
                         } else {
                             upperSearchInput.value = iframeSrc;
                         }

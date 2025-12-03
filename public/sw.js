@@ -11,11 +11,48 @@ const sj = new ScramjetServiceWorker({
         captureErrors: true, // Better error handling
         syncxhr: true, // Support synchronous XHR for complex sites
         scramitize: true, // Better domain handling
-        cleanErrors: false, // Keep error messages for debugging
+        cleanErrors: true, // Clean errors to prevent InvalidHeaderValue issues
         strictRewrites: false, // Allow flexible rewrites
         allowFailedIntercepts: true // Continue on failed intercepts
     }
 });
+
+/**
+ * Sanitize header value to prevent InvalidHeaderValue errors
+ * Removes or replaces characters that are not allowed in HTTP headers
+ * @param {string} value - The header value to sanitize
+ * @returns {string} - Sanitized header value
+ */
+function sanitizeHeaderValue(value) {
+    if (typeof value !== "string") return String(value || "");
+    // Remove control characters (except horizontal tab), newlines, and other problematic chars
+    // HTTP headers allow only visible ASCII characters and horizontal tab
+    return value
+        .replace(/[\x00-\x08\x0A-\x1F\x7F]/g, "") // Remove control chars except \t (0x09)
+        .replace(/\r?\n/g, " ") // Replace newlines with space
+        .trim();
+}
+
+/**
+ * Create a sanitized Headers object from existing headers
+ * @param {Headers} headers - Original headers
+ * @returns {Headers} - Sanitized headers
+ */
+function sanitizeHeaders(headers) {
+    const sanitized = new Headers();
+    for (const [key, value] of headers.entries()) {
+        try {
+            const sanitizedValue = sanitizeHeaderValue(value);
+            if (sanitizedValue) {
+                sanitized.set(key, sanitizedValue);
+            }
+        } catch (e) {
+            // Skip headers that still cause issues after sanitization
+            console.warn(`Skipping problematic header: ${key}`, e);
+        }
+    }
+    return sanitized;
+}
 
 // Enhanced CAPTCHA and Cloudflare verification support
 // List of CAPTCHA and verification domains that need special handling
@@ -64,7 +101,7 @@ function isHeavyCookieSite(url) {
 // Helper function to ensure proper CAPTCHA handling
 function enhanceCaptchaRequest(request) {
     // Clone the request to ensure all headers and properties are preserved
-    const headers = new Headers(request.headers);
+    const headers = sanitizeHeaders(request.headers);
 
     // Ensure proper headers for CAPTCHA requests
     if (!headers.has("Accept")) {
@@ -81,7 +118,7 @@ function enhanceCaptchaRequest(request) {
 
 // Enhanced request handler for heavy cookie sites
 function enhanceHeavyCookieRequest(request) {
-    const headers = new Headers(request.headers);
+    const headers = sanitizeHeaders(request.headers);
 
     // Ensure credentials are included for cookie persistence
     return new Request(request, {
@@ -117,16 +154,44 @@ self.addEventListener("fetch", function (event) {
                 }
 
                 let response;
-                if (isUvRequest) {
-                    response = await uv.fetch(event);
-                } else if (isSjRequest) {
-                    response = await sj.fetch(event);
-                } else {
-                    response = await fetch(request);
+                try {
+                    if (isUvRequest) {
+                        response = await uv.fetch(event);
+                    } else if (isSjRequest) {
+                        response = await sj.fetch(event);
+                    } else {
+                        response = await fetch(request);
+                    }
+                } catch (fetchError) {
+                    // Handle InvalidHeaderValue and other fetch errors
+                    const errorMessage = String(fetchError.message || fetchError);
+                    if (errorMessage.includes("InvalidHeaderValue") || 
+                        errorMessage.includes("failed to parse header")) {
+                        console.warn("Header error, retrying with sanitized request:", url);
+                        // Try again with sanitized headers
+                        const sanitizedRequest = new Request(event.request.url, {
+                            method: event.request.method,
+                            headers: sanitizeHeaders(event.request.headers),
+                            body: event.request.method !== "GET" && event.request.method !== "HEAD" 
+                                ? event.request.body : undefined,
+                            mode: "cors",
+                            credentials: "include",
+                            redirect: "follow"
+                        });
+                        
+                        if (isSjRequest) {
+                            // For scramjet, try to fetch directly
+                            response = await fetch(sanitizedRequest);
+                        } else {
+                            response = await fetch(sanitizedRequest);
+                        }
+                    } else {
+                        throw fetchError;
+                    }
                 }
 
                 // Inject interceptor script into proxied HTML responses
-                if (isProxiedRequest) {
+                if (isProxiedRequest && response) {
                     response = await injectInterceptorScript(response);
                 }
 
