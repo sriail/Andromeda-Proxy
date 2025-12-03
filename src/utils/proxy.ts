@@ -112,21 +112,22 @@ class SW {
             await this.#baremuxConn!.setTransport("/baremod/index.mjs", [bareServer()]);
         } else {
             // Use wisp server transport (default)
+            // Using safe transport wrappers that sanitize headers to prevent InvalidHeaderValue errors
             switch (transport) {
                 case "epoxy": {
-                    await this.#baremuxConn!.setTransport("/epoxy/index.mjs", [
+                    await this.#baremuxConn!.setTransport("/epoxy-safe/index.mjs", [
                         { wisp: wispServer() }
                     ]);
                     break;
                 }
                 case "libcurl": {
-                    await this.#baremuxConn!.setTransport("/libcurl/index.mjs", [
+                    await this.#baremuxConn!.setTransport("/libcurl-safe/index.mjs", [
                         { wisp: wispServer() }
                     ]);
                     break;
                 }
                 default: {
-                    await this.#baremuxConn!.setTransport("/epoxy/index.mjs", [
+                    await this.#baremuxConn!.setTransport("/epoxy-safe/index.mjs", [
                         { wisp: wispServer() }
                     ]);
                     break;
