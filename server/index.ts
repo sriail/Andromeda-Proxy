@@ -35,7 +35,9 @@ const serverFactory: FastifyServerFactory = (
         keepAlive: true,
         keepAliveTimeout: 65000, // 65 seconds
         // Increase timeout for long-running requests
-        requestTimeout: 120000 // 120 seconds
+        requestTimeout: 120000, // 120 seconds
+        // Allow non-standard headers from proxied sites to prevent "invalid header value" errors
+        insecureHTTPParser: true
     });
 
     server

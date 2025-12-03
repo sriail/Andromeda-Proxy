@@ -65,12 +65,12 @@ class Settings {
      * Get the current effective theme based on theme mode
      * @returns 'light' or 'dark'
      */
-    #getEffectiveTheme(): 'light' | 'dark' {
+    #getEffectiveTheme(): "light" | "dark" {
         const themeMode = this.#storageManager.getVal("themeMode") || "dark";
         if (themeMode === "system") {
             return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
-        return themeMode as 'light' | 'dark';
+        return themeMode as "light" | "dark";
     }
 
     /**
@@ -79,10 +79,10 @@ class Settings {
     #applyThemeMode() {
         const themeMode = this.#storageManager.getVal("themeMode") || "dark";
         const customTheme = this.#storageManager.getVal("theme");
-        
+
         // Remove all theme classes first
         document.documentElement.classList.remove("light", "dark");
-        
+
         // If there's a custom theme set (not "default"), use it
         if (customTheme && customTheme !== "default") {
             document.documentElement.className = customTheme;
@@ -94,7 +94,7 @@ class Settings {
             const effectiveTheme = this.#getEffectiveTheme();
             document.documentElement.className = effectiveTheme;
         }
-        
+
         // Update favicon based on effective theme
         this.#updateFavicon();
     }
@@ -107,7 +107,8 @@ class Settings {
         const faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
         if (faviconLink) {
             // Light favicon for dark theme, dark favicon for light theme
-            faviconLink.href = effectiveTheme === "dark" ? "/favicon-light.png" : "/favicon-dark.png";
+            faviconLink.href =
+                effectiveTheme === "dark" ? "/favicon-light.png" : "/favicon-dark.png";
         }
     }
 
@@ -119,14 +120,14 @@ class Settings {
      * settings.themeMode('dark') // Dark theme
      * settings.themeMode('system') // Follow system preference
      */
-    themeMode(mode?: 'light' | 'dark' | 'system') {
+    themeMode(mode?: "light" | "dark" | "system") {
         if (mode) {
             this.#storageManager.setVal("themeMode", mode);
         }
         this.#applyThemeMode();
-        
+
         // Set up system preference listener if mode is 'system'
-        if (mode === 'system' || this.#storageManager.getVal("themeMode") === "system") {
+        if (mode === "system" || this.#storageManager.getVal("themeMode") === "system") {
             if (!this.#mediaQuery) {
                 this.#mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
                 this.#mediaQuery.addEventListener("change", () => {
