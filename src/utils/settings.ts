@@ -23,6 +23,7 @@ class Settings {
     // Our own internal StorageManager so things never interfere
     #storageManager: StoreManager<"radius||settings">;
     static #instance = new Set();
+    #mediaQuery: MediaQueryList | null = null;
 
     /**
      * Method to get the current or other Settings instance(s)
@@ -61,6 +62,83 @@ class Settings {
     }
 
     /**
+     * Get the current effective theme based on theme mode
+     * @returns 'light' or 'dark'
+     */
+    #getEffectiveTheme(): 'light' | 'dark' {
+        const themeMode = this.#storageManager.getVal("themeMode") || "dark";
+        if (themeMode === "system") {
+            return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        return themeMode as 'light' | 'dark';
+    }
+
+    /**
+     * Apply the current theme mode to the document
+     */
+    #applyThemeMode() {
+        const themeMode = this.#storageManager.getVal("themeMode") || "dark";
+        const customTheme = this.#storageManager.getVal("theme");
+        
+        // Remove all theme classes first
+        document.documentElement.classList.remove("light", "dark");
+        
+        // If there's a custom theme set (not "default"), use it
+        if (customTheme && customTheme !== "default") {
+            document.documentElement.className = customTheme;
+            // Add theme mode class for logo/favicon switching
+            const effectiveTheme = this.#getEffectiveTheme();
+            document.documentElement.classList.add(effectiveTheme);
+        } else {
+            // Apply theme mode (light/dark/system)
+            const effectiveTheme = this.#getEffectiveTheme();
+            document.documentElement.className = effectiveTheme;
+        }
+        
+        // Update favicon based on effective theme
+        this.#updateFavicon();
+    }
+
+    /**
+     * Update the favicon based on the current theme
+     */
+    #updateFavicon() {
+        const effectiveTheme = this.#getEffectiveTheme();
+        const faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+        if (faviconLink) {
+            // Light favicon for dark theme, dark favicon for light theme
+            faviconLink.href = effectiveTheme === "dark" ? "/favicon-light.png" : "/favicon-dark.png";
+        }
+    }
+
+    /**
+     * Set's the theme mode (light, dark, or system)
+     *
+     * @example
+     * settings.themeMode('light') // Light theme
+     * settings.themeMode('dark') // Dark theme
+     * settings.themeMode('system') // Follow system preference
+     */
+    themeMode(mode?: 'light' | 'dark' | 'system') {
+        if (mode) {
+            this.#storageManager.setVal("themeMode", mode);
+        }
+        this.#applyThemeMode();
+        
+        // Set up system preference listener if mode is 'system'
+        if (mode === 'system' || this.#storageManager.getVal("themeMode") === "system") {
+            if (!this.#mediaQuery) {
+                this.#mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+                this.#mediaQuery.addEventListener("change", () => {
+                    if (this.#storageManager.getVal("themeMode") === "system") {
+                        this.#applyThemeMode();
+                    }
+                });
+            }
+        }
+    }
+
+    /**
      * Set's the theme either to the current theme OR to a new one
      *
      * @example
@@ -73,9 +151,8 @@ class Settings {
      */
     theme(theme?: string) {
         this.#storageManager.setVal("theme", theme || this.#storageManager.getVal("theme"));
-        theme === "default"
-            ? (document.documentElement.className = "default")
-            : (document.documentElement.className = theme || this.#storageManager.getVal("theme"));
+        // Apply both custom theme and theme mode
+        this.#applyThemeMode();
     }
 
     proxy(prox?: "uv" | "sj") {
@@ -157,6 +234,9 @@ class Settings {
     }
 
     async *#init() {
+        // Initialize theme mode first
+        yield this.themeMode();
+        // Then apply any custom theme
         yield this.theme(this.#storageManager.getVal("theme") || "default");
     }
 
