@@ -52,6 +52,7 @@ export function initializeCaptchaHandlers() {
 
     // Request persistent storage for better data retention
     if (navigator.storage && navigator.storage.persist) {
+        // Storage persistence is optional, silently fail if not supported
         navigator.storage.persist().catch(() => {});
     }
 }

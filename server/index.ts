@@ -71,7 +71,7 @@ app.setNotFoundHandler((req, res) => {
     res.redirect("/404");
 });
 
-const port = parseInt(process.env.PORT as string) || 8080;
+const port = parseInt(process.env.PORT || "8080");
 
 app.listen({ port: port, host: "0.0.0.0" })
     .then(() => {
