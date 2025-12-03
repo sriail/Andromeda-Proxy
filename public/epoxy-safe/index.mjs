@@ -8,9 +8,17 @@
 
 import EpoxyTransport, { epoxyInfo } from "/epoxy/index.mjs";
 
+// Primary sanitization: Remove control characters except HTAB (0x09)
+// Keeps: HTAB (0x09), printable ASCII (0x20-0x7E), and extended ASCII (0x80-0xFF)
+const PRIMARY_SANITIZE_PATTERN = /[\x00-\x08\x0A-\x1F\x7F]/g;
+
+// Strict fallback sanitization: Only allow printable ASCII (0x20-0x7E)
+// Used when primary sanitization still fails (removes extended ASCII as well)
+const STRICT_SANITIZE_PATTERN = /[^\x20-\x7E]/g;
+
 /**
- * Sanitize a header value by removing invalid characters.
- * HTTP header values must be valid ASCII with no control characters (except HTAB).
+ * Sanitize a header value by removing invalid control characters.
+ * Preserves HTAB (0x09), printable ASCII (0x20-0x7E), and extended ASCII (0x80-0xFF).
  * @param {string} value - The header value to sanitize
  * @returns {string} - The sanitized header value
  */
@@ -18,10 +26,7 @@ function sanitizeHeaderValue(value) {
     if (typeof value !== "string") {
         value = String(value);
     }
-    // Remove null bytes, newlines, carriage returns, and other control characters
-    // except for horizontal tab (0x09) which is allowed in HTTP headers
-    // Valid header value characters: 0x09 (HTAB), 0x20-0x7E (visible ASCII + space), 0x80-0xFF (obs-text)
-    return value.replace(/[\x00-\x08\x0A-\x1F\x7F]/g, "");
+    return value.replace(PRIMARY_SANITIZE_PATTERN, "");
 }
 
 /**
@@ -102,7 +107,9 @@ class SafeEpoxyTransport {
                         ].includes(lowerKey)
                     ) {
                         minimalHeaders[key] =
-                            typeof value === "string" ? value.replace(/[^\x20-\x7E]/g, "") : value;
+                            typeof value === "string"
+                                ? value.replace(STRICT_SANITIZE_PATTERN, "")
+                                : value;
                     }
                 }
                 return await this.innerTransport.request(
