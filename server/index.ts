@@ -13,8 +13,34 @@ import { createBareServer } from "@tomphttp/bare-server-node";
 
 //@ts-ignore this is created at runtime. No types associated w/it
 import { handler as astroHandler } from "../dist/server/entry.mjs";
-import { createServer } from "node:http";
+import { createServer, IncomingMessage, ServerResponse } from "node:http";
 import { Socket } from "node:net";
+
+// Helper function to sanitize HTTP header values
+// Removes characters that can cause http:Error(invalidHeaderValue)
+const sanitizeHeaderValue = (value: string): string => {
+    if (typeof value !== "string") {
+        return String(value);
+    }
+    // Remove null bytes, carriage returns, line feeds, and control characters
+    return value
+        .replace(/[\x00\r\n]/g, "")
+        .replace(/[\x01-\x08\x0b\x0c\x0e-\x1f\x7f]/g, "")
+        .trim();
+};
+
+// Helper function to sanitize all headers in a request
+const sanitizeRequestHeaders = (req: IncomingMessage): void => {
+    for (const [key, value] of Object.entries(req.headers)) {
+        if (value === undefined) continue;
+
+        if (Array.isArray(value)) {
+            req.headers[key] = value.map((v) => sanitizeHeaderValue(v));
+        } else {
+            req.headers[key] = sanitizeHeaderValue(value);
+        }
+    }
+};
 
 const bareServer = createBareServer("/bare/", {
     connectionLimiter: {
@@ -30,17 +56,22 @@ const serverFactory: FastifyServerFactory = (
 ): RawServerDefault => {
     const server = createServer({
         // Increase header size limit for sites with heavy cookies
-        maxHeaderSize: 32768, // 32KB
+        maxHeaderSize: 65536, // 64KB (increased for better compatibility)
         // Enable keep-alive for better connection stability
         keepAlive: true,
         keepAliveTimeout: 65000, // 65 seconds
         // Increase timeout for long-running requests
-        requestTimeout: 120000 // 120 seconds
+        requestTimeout: 120000, // 120 seconds
+        // Allow high-water mark for better streaming performance
+        highWaterMark: 65536 // 64KB
     });
 
     server
-        .on("request", (req, res) => {
+        .on("request", (req: IncomingMessage, res: ServerResponse) => {
             try {
+                // Sanitize request headers to prevent invalidHeaderValue errors
+                sanitizeRequestHeaders(req);
+
                 if (bareServer.shouldRoute(req)) {
                     bareServer.routeRequest(req, res);
                 } else {
@@ -54,24 +85,33 @@ const serverFactory: FastifyServerFactory = (
                 }
             }
         })
-        .on("upgrade", (req, socket, head) => {
+        .on("upgrade", (req: IncomingMessage, socket: Socket, head: Buffer) => {
             try {
+                // Sanitize request headers for WebSocket upgrades too
+                sanitizeRequestHeaders(req);
+
                 if (bareServer.shouldRoute(req)) {
-                    bareServer.routeUpgrade(req, socket as Socket, head);
+                    bareServer.routeUpgrade(req, socket, head);
                 } else if (req.url?.endsWith("/wisp/") || req.url?.endsWith("/adblock/")) {
-                    console.log("WebSocket upgrade:", req.url);
-                    wisp.routeRequest(req, socket as Socket, head);
+                    wisp.routeRequest(req, socket, head);
+                } else {
+                    // Close socket for unhandled upgrade requests
+                    socket.destroy();
                 }
             } catch (error) {
                 console.error("Error handling WebSocket upgrade:", error);
                 socket.destroy();
             }
         })
-        .on("error", (error) => {
+        .on("error", (error: Error) => {
             console.error("Server error:", error);
         })
-        .on("clientError", (error, socket) => {
-            console.error("Client error:", error);
+        .on("clientError", (error: Error, socket: Socket) => {
+            // Suppress common client errors that don't need logging
+            const errorMessage = error.message || "";
+            if (!errorMessage.includes("ECONNRESET") && !errorMessage.includes("EPIPE")) {
+                console.error("Client error:", error.message);
+            }
             if (!socket.destroyed) {
                 socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
             }
@@ -122,7 +162,7 @@ app.listen({ port: port, host: "0.0.0.0" })
         console.log(`Server listening on http://localhost:${port}/`);
         console.log(`Server also listening on http://0.0.0.0:${port}/`);
         console.log(`Connection timeout: 120s, Keep-alive timeout: 65s`);
-        console.log(`Max header size: 32KB, Body limit: 10MB`);
+        console.log(`Max header size: 64KB, Body limit: 10MB`);
     })
     .catch((error) => {
         console.error("Failed to start server:", error);

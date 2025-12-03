@@ -49,6 +49,42 @@ const HEAVY_COOKIE_DOMAINS = [
     "spotify.com"
 ];
 
+// Helper function to sanitize header values to prevent http:Error(invalidHeaderValue)
+// Removes or replaces invalid characters that can cause header parsing failures
+function sanitizeHeaderValue(value) {
+    if (typeof value !== "string") {
+        return String(value);
+    }
+    // Remove characters that are invalid in HTTP header values:
+    // - Remove null bytes (\x00)
+    // - Remove carriage returns (\r) and line feeds (\n) to prevent header injection
+    // - Remove control characters (except tab which is allowed)
+    // - Trim leading/trailing whitespace
+    return value
+        .replace(/[\x00\r\n]/g, "")
+        .replace(/[\x01-\x08\x0b\x0c\x0e-\x1f\x7f]/g, "")
+        .trim();
+}
+
+// Helper function to create sanitized headers from an existing Headers object
+function sanitizeHeaders(headers) {
+    const sanitized = new Headers();
+    for (const [key, value] of headers.entries()) {
+        try {
+            const sanitizedKey = sanitizeHeaderValue(key);
+            const sanitizedValue = sanitizeHeaderValue(value);
+            // Only set if both key and value are non-empty after sanitization
+            if (sanitizedKey && sanitizedValue) {
+                sanitized.set(sanitizedKey, sanitizedValue);
+            }
+        } catch (e) {
+            // Skip headers that still fail after sanitization
+            console.warn("Skipping invalid header:", key, e);
+        }
+    }
+    return sanitized;
+}
+
 // Helper function to check if URL is CAPTCHA-related
 function isCaptchaRequest(url) {
     const urlStr = url.toString().toLowerCase();
@@ -63,8 +99,8 @@ function isHeavyCookieSite(url) {
 
 // Helper function to ensure proper CAPTCHA handling
 function enhanceCaptchaRequest(request) {
-    // Clone the request to ensure all headers and properties are preserved
-    const headers = new Headers(request.headers);
+    // Clone and sanitize the request headers to prevent invalidHeaderValue errors
+    const headers = sanitizeHeaders(request.headers);
 
     // Ensure proper headers for CAPTCHA requests
     if (!headers.has("Accept")) {
@@ -81,7 +117,8 @@ function enhanceCaptchaRequest(request) {
 
 // Enhanced request handler for heavy cookie sites
 function enhanceHeavyCookieRequest(request) {
-    const headers = new Headers(request.headers);
+    // Clone and sanitize the request headers to prevent invalidHeaderValue errors
+    const headers = sanitizeHeaders(request.headers);
 
     // Ensure credentials are included for cookie persistence
     return new Request(request, {
@@ -221,8 +258,8 @@ async function injectInterceptorScript(response) {
         if (text.includes("[Proxy Interceptor]")) {
             return new Response(text, {
                 status: response.status,
-                statusText: response.statusText,
-                headers: response.headers
+                statusText: sanitizeHeaderValue(response.statusText || "OK"),
+                headers: sanitizeHeaders(response.headers)
             });
         }
 
@@ -249,11 +286,11 @@ async function injectInterceptorScript(response) {
             injected = true;
         }
 
-        // Return modified response
+        // Return modified response with sanitized headers
         return new Response(modifiedHtml, {
             status: response.status,
-            statusText: response.statusText,
-            headers: response.headers
+            statusText: sanitizeHeaderValue(response.statusText || "OK"),
+            headers: sanitizeHeaders(response.headers)
         });
     } catch (error) {
         console.error("Error injecting interceptor script:", error);

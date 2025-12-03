@@ -89,20 +89,126 @@ const link = Astro.url.searchParams.get("redir");
             }
         });
 
+        // Helper function to decode scramjet URLs
+        const decodeScramjetURL = (encodedPath: string): string => {
+            try {
+                // Scramjet uses URL encoding for the proxied URL
+                let decoded = decodeURIComponent(encodedPath);
+                // Handle double encoding if present
+                if (decoded.includes('%')) {
+                    try {
+                        decoded = decodeURIComponent(decoded);
+                    } catch {
+                        // Already decoded, use as is
+                    }
+                }
+                return decoded;
+            } catch {
+                return encodedPath;
+            }
+        };
+
         const getURL = async (): Promise<string> => {
             if (iframeWin!.__uv) {
                 return iframeWin!.__uv.location.href
             }
-            else if (iframeWin!.$scramjet?.config?.prefix) {
-                return iframeWin!.location.href
-                    .replace(iframeWin!.location.origin, '')
-                    .replace(iframeWin!.$scramjet.config.prefix, '')
+            else if (iframeWin!.$scramjet) {
+                // Scramjet stores the original URL in the client's url property
+                if (iframeWin!.$scramjet.url) {
+                    return iframeWin!.$scramjet.url.href || iframeWin!.$scramjet.url.toString();
+                } else if (iframeWin!.$scramjet.config?.prefix) {
+                    // Fallback: decode from the location href
+                    const scramjetURL = iframeWin!.location.href;
+                    const prefix = iframeWin!.$scramjet.config.prefix;
+                    let encoded = scramjetURL
+                        .replace(iframeWin!.location.origin, '')
+                        .replace(prefix, '');
+                    // Handle hash fragments
+                    const hashIndex = encoded.indexOf('#');
+                    let hash = '';
+                    if (hashIndex !== -1) {
+                        hash = encoded.slice(hashIndex);
+                        encoded = encoded.slice(0, hashIndex);
+                    }
+                    return decodeScramjetURL(encoded) + hash;
+                }
+                return iframeWin!.location.href;
             }
             else {
                 // Fallback if neither proxy is available
                 return iframeWin!.location.href;
             }
         }
+
+        // Helper function to extract domain from URL for favicon fetching
+        const extractDomain = (url: string): string => {
+            try {
+                return new URL(url).hostname;
+            } catch {
+                return url;
+            }
+        };
+
+        // Helper function to fetch favicon with fallback sources
+        const fetchFavicon = async (pageURL: string): Promise<string> => {
+            const domain = extractDomain(pageURL);
+            
+            // Try to get favicon from the iframe's document first (most reliable)
+            try {
+                const iframeDoc = iframeWin?.document;
+                if (iframeDoc) {
+                    // Look for link elements with rel containing "icon"
+                    const iconLinks = iframeDoc.querySelectorAll('link[rel*="icon"]');
+                    for (const link of iconLinks) {
+                        const href = (link as HTMLLinkElement).href;
+                        if (href) {
+                            // Verify the favicon is accessible
+                            try {
+                                const response = await client.fetch(href);
+                                if (response.ok) {
+                                    const blob = await response.blob();
+                                    return URL.createObjectURL(blob);
+                                }
+                            } catch {
+                                // Continue to next link or fallback
+                            }
+                        }
+                    }
+                }
+            } catch {
+                // Cross-origin or other error, use fallbacks
+            }
+
+            // Fallback sources for favicons
+            const faviconSources = [
+                // Google's favicon service (most reliable)
+                `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+                // DuckDuckGo favicon service
+                `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+                // Direct favicon.ico from the site
+                `https://${domain}/favicon.ico`,
+                // Alternative: apple-touch-icon
+                `https://${domain}/apple-touch-icon.png`,
+            ];
+
+            for (const source of faviconSources) {
+                try {
+                    const response = await client.fetch(source);
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        // Verify we got a valid image
+                        if (blob.size > 0 && blob.type.startsWith('image/')) {
+                            return URL.createObjectURL(blob);
+                        }
+                    }
+                } catch {
+                    // Try next source
+                }
+            }
+
+            // Return empty string if all sources fail
+            return '';
+        };
 
         const buttons = () => {
             proxyLeft.addEventListener("click", () => {
@@ -120,12 +226,22 @@ const link = Astro.url.searchParams.get("redir");
         }
 
         iframe.addEventListener("load", async () => {
-            phlTitle.innerHTML = iframeWin!.document.title;
+            try {
+                phlTitle.innerHTML = iframeWin!.document.title || 'Untitled';
+            } catch {
+                phlTitle.innerHTML = 'Untitled';
+            }
+            
             const pageURL = await getURL();
-            const data = await client.fetch(`https://www.google.com/s2/favicons?domain=${pageURL}&sz=64`);
-            const dataRes = await data.blob();
-            const object = URL.createObjectURL(dataRes);
-            phlImage.src = object;
+            const faviconUrl = await fetchFavicon(pageURL);
+            
+            if (faviconUrl) {
+                phlImage.src = faviconUrl;
+            } else {
+                // Use a default favicon if none found
+                phlImage.src = '/favicon.png';
+            }
+            
             bhl.classList.add("hidden");
             phl.classList.remove("hidden");
         }); 
