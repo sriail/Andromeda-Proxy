@@ -1,6 +1,4 @@
 import Fastify, {
-    FastifyReply,
-    FastifyRequest,
     FastifyServerFactory,
     FastifyServerFactoryHandler,
     RawServerDefault
@@ -115,7 +113,7 @@ app.setErrorHandler((error, request, reply) => {
     });
 });
 
-const port = parseInt(process.env.PORT as string) || parseInt("8080");
+const port = parseInt(process.env.PORT as string) || 8080;
 
 app.listen({ port: port, host: "0.0.0.0" })
     .then(async () => {
