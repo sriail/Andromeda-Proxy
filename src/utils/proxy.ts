@@ -104,7 +104,7 @@ class SW {
         if (get) return this.#storageManager.getVal("transport");
         this.#storageManager.setVal(
             "transport",
-            transport || this.#storageManager.getVal("transport") || "epoxy"
+            transport || this.#storageManager.getVal("transport") || "libcurl"
         );
 
         if (routingMode === "bare") {
@@ -126,7 +126,8 @@ class SW {
                     break;
                 }
                 default: {
-                    await this.#baremuxConn!.setTransport("/epoxy/index.mjs", [
+                    // Use libcurl by default as it's more lenient with header validation
+                    await this.#baremuxConn!.setTransport("/libcurl/index.mjs", [
                         { wisp: wispServer() }
                     ]);
                     break;
