@@ -113,16 +113,36 @@ const link = Astro.url.searchParams.get("redir");
         });
 
         const getURL = async (): Promise<string> => {
-            if (iframeWin!.__uv) {
-                return iframeWin!.__uv.location.href
-            }
-            else if (iframeWin!.$scramjet?.config?.prefix) {
-                return iframeWin!.location.href
-                    .replace(iframeWin!.location.origin, '')
-                    .replace(iframeWin!.$scramjet.config.prefix, '')
-            }
-            else {
-                // Fallback if neither proxy is available
+            try {
+                if (iframeWin!.__uv) {
+                    return iframeWin!.__uv.location.href;
+                }
+                else if (iframeWin!.$scramjet) {
+                    // Try to get the real URL from scramjet's location object
+                    if (iframeWin!.$scramjet.url) {
+                        return iframeWin!.$scramjet.url.href || iframeWin!.$scramjet.url;
+                    } else if (iframeWin!.$scramjet.location) {
+                        return iframeWin!.$scramjet.location.href;
+                    } else {
+                        // Fallback: extract and decode from URL
+                        const prefix = iframeWin!.$scramjet.config?.prefix || '/~/scramjet/';
+                        const scramjetURL = iframeWin!.location.href
+                            .replace(iframeWin!.location.origin, '')
+                            .replace(prefix, '');
+                        // Decode the URL-encoded URL
+                        try {
+                            return decodeURIComponent(scramjetURL);
+                        } catch {
+                            return scramjetURL;
+                        }
+                    }
+                }
+                else {
+                    // Fallback if neither proxy is available
+                    return iframeWin!.location.href;
+                }
+            } catch (e) {
+                // Handle cross-origin errors
                 return iframeWin!.location.href;
             }
         }
