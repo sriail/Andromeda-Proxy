@@ -10,6 +10,30 @@ const createScript = (src: string, defer?: boolean) => {
 };
 
 /**
+ * Helper function to decode scramjet URLs
+ * Scramjet uses URL encoding for the proxied URL
+ * @param encodedPath - The encoded URL path from scramjet
+ * @returns The decoded original URL
+ */
+export const decodeScramjetURL = (encodedPath: string): string => {
+    try {
+        // Scramjet uses URL encoding for the proxied URL
+        let decoded = decodeURIComponent(encodedPath);
+        // Handle double encoding if present
+        if (decoded.includes("%")) {
+            try {
+                decoded = decodeURIComponent(decoded);
+            } catch {
+                // Already decoded, use as is
+            }
+        }
+        return decoded;
+    } catch {
+        return encodedPath;
+    }
+};
+
+/**
  * This class automatically sets up and handles lots of stuff for us.
  *
  * It registers/fixes errors with SW reg

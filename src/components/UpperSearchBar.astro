@@ -13,7 +13,7 @@ import { Icon } from "astro-icon/components";
 </div>
 
 <script>
-    import { SW } from "@utils/proxy.ts";
+    import { SW, decodeScramjetURL } from "@utils/proxy.ts";
 
     const init = async () => {
         const upperSearchInput = document.getElementById("upperSearchInput") as HTMLInputElement;
@@ -79,11 +79,27 @@ import { Icon } from "astro-icon/components";
                     // Get the actual URL from the proxy
                     if (iframeWin.__uv) {
                         pageURL = iframeWin.__uv.location.href;
-                    } else if (iframeWin.$scramjet?.config?.prefix) {
-                        const scramjetURL = iframeWin.location.href;
-                        pageURL = scramjetURL
-                            .replace(iframeWin.location.origin, '')
-                            .replace(iframeWin.$scramjet.config.prefix, '');
+                    } else if (iframeWin.$scramjet) {
+                        // Scramjet stores the original URL in the client's url property
+                        if (iframeWin.$scramjet.url) {
+                            pageURL = iframeWin.$scramjet.url.href || iframeWin.$scramjet.url.toString();
+                        } else if (iframeWin.$scramjet.config?.prefix) {
+                            // Fallback: decode from the location href
+                            const scramjetURL = iframeWin.location.href;
+                            const prefix = iframeWin.$scramjet.config.prefix;
+                            // Remove origin and prefix, then decode
+                            let encoded = scramjetURL
+                                .replace(iframeWin.location.origin, '')
+                                .replace(prefix, '');
+                            // Handle hash fragments
+                            const hashIndex = encoded.indexOf('#');
+                            let hash = '';
+                            if (hashIndex !== -1) {
+                                hash = encoded.slice(hashIndex);
+                                encoded = encoded.slice(0, hashIndex);
+                            }
+                            pageURL = decodeScramjetURL(encoded) + hash;
+                        }
                     } else {
                         pageURL = iframeWin.location.href;
                     }
@@ -107,8 +123,20 @@ import { Icon } from "astro-icon/components";
                                 }
                             }
                         } else if (iframeSrc.includes('/~/scramjet/')) {
-                            const encoded = iframeSrc.split('/~/scramjet/')[1];
-                            upperSearchInput.value = encoded || iframeSrc;
+                            // Extract and decode scramjet URL
+                            let encoded = iframeSrc.split('/~/scramjet/')[1];
+                            if (encoded) {
+                                // Handle hash fragments
+                                const hashIndex = encoded.indexOf('#');
+                                let hash = '';
+                                if (hashIndex !== -1) {
+                                    hash = encoded.slice(hashIndex);
+                                    encoded = encoded.slice(0, hashIndex);
+                                }
+                                upperSearchInput.value = decodeScramjetURL(encoded) + hash;
+                            } else {
+                                upperSearchInput.value = iframeSrc;
+                            }
                         } else {
                             upperSearchInput.value = iframeSrc;
                         }
